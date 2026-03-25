@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JM's Bandit Lab v2.0</title>
+    <style>
+        :root { --primary: #00ff41; --bg: #0d0208; --card: #1a1a1a; }
+        body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: #fff; line-height: 1.6; display: flex; justify-content: center; padding: 40px; }
+        .container { max-width: 900px; width: 100%; background: var(--card); border: 1px solid var(--primary); border-radius: 8px; padding: 30px; box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); }
+        h1 { color: var(--primary); text-align: center; text-transform: uppercase; letter-spacing: 3px; border-bottom: 2px solid var(--primary); padding-bottom: 15px; }
+        .level-box { margin-bottom: 25px; border-left: 4px solid var(--primary); padding-left: 15px; background: rgba(0, 255, 65, 0.05); padding-top: 10px; padding-bottom: 10px; }
+        .level-title { font-weight: bold; color: var(--primary); font-size: 1.2em; }
+        code { background: #000; color: #ffeb3b; padding: 4px 8px; border-radius: 4px; display: block; margin-top: 10px; border: 1px dashed #444; }
+        .footer { text-align: center; font-size: 0.8em; color: #888; margin-top: 40px; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="pulse">●</span> JM's Bandit Lab v2.0</h1>
+        <p style="text-align: center; color: #888;">Docker Cloud Deployment Status: <span style="color: var(--primary);">ACTIVE</span></p>
+
+        <div class="level-box">
+            <div class="level-title">🚩 Level 24: The Brute Force Path</div>
+            <code>for i in {0000..9999}; do echo "pass $i"; done | nc localhost 30002</code>
+        </div>
+
+        <div class="level-box">
+            <div class="level-title">🚩 Level 32: The Great Shell Escape</div>
+            <code>$0</code>
+        </div>
+
+        <div class="level-box">
+            <div class="level-title">🐳 Docker Core Workflow</div>
+            <p>Build ➔ Tag ➔ Push ➔ Deploy</p>
+        </div>
+
+        <div class="footer">
+            Designed by JM | Powered by Docker & Nginx alpine
+        </div>
+
+
+        <div class="level-box">
+        <div class="level-title">📊 System Memory (系统记忆)</div>
+        <p>This container has been accessed <span id="count">100</span> times.</p>
+        </div>
+
+    </div>
+</body>
+</html>
