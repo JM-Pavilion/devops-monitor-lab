@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import threading
 import urllib.request
-impor time
+import time
 from datetime import datetime
 
 # --- 配置区 ---
