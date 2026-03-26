@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # 以后如果有依赖包（如 requests），写在这里
+        # 以后如果有依赖包(如 requests),写在这里
 
     - name: Check Syntax Error
       run: |
