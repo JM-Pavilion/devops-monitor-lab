@@ -4,7 +4,8 @@ FROM python:3.9-slim
 #2.设置容器内部的工作目录
 WORKDIR /app
 
-#3.将当前目录下的所有文件复制到容器的工作目录中
+RUN pip install requests flask
+
 COPY . .
 
 #4.暴露我们在代码里的定义的80端口

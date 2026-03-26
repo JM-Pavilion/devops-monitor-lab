@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   my-web:
     image: jminng/jm-bandit-web:v2
@@ -13,14 +14,11 @@ services:
 
   # --- 这是今天升级的 DevOps 监控节点 ---
   health-monitor:
-    image: jminng/jm-bandit-web:v2  
+    build: .
     ports:
       - "8082:80" # 把容器的80端口映射到你电脑的8082
     volumes:
-      - ./bot.py:/app/bot.py
       - ./monitor.log:/app/monitor.log #新增这一行：把容器里的日志“勾”到桌面上来
     # 核心：安装 Python 并运行我们的无限循环监控脚本
-        # 修改 command 这一行，增加一个“换源”的操作
-    command: sh -c "sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && apk add --no-cache python3 && python3 /app/bot.py"
 
     restart: always
