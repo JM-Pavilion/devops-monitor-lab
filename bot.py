@@ -94,28 +94,69 @@ def monitoring_worker():
 # --- 5. Flask Web 界面逻辑 (融合了你之前的UI显示) ---
 @app.route('/')
 def index():
-    # 如果后台线程还没来得及第一次检查，显示正在加载
-    if not service_status_cache:
-        results_html = "<li>⏳ 机器人正在进行首次巡逻，请稍候...</li>"
-    else:
-        results_list = []
-        for name, status in service_status_cache.items():
-            results_list.append(f"<li><b>{name}</b>: {status}</li>")
-        results_html = "".join(results_list)
+    status_cards = ""
+    for name, status in service_status_cache.items():#根据状态决定颜色
+      bg_color = "bg-green-100 border-green-500 text-green-700" if "正常" in status else "bg-red-100 border-red-500 text-red-700"
+      status_cards += f"""
+      <div class="p-4 rounded-lg border-2 {bg_color} shadow-sm">
+        <h2 class=font-bold text-lg">{name}</h2>
+        <p class="text-sm opacity-80">{status}</p>
+      </div>
+      """
 
-    # 保留你原来的 CSS 样式
-    html = f"""
-    <html>
-        <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
-            <h1>🚀 JM 的全网监控雷达 v2.1 (飞书告警版)</h1>
-            <div style="display: inline-block; text-align: left; border: 1px solid #ccc; padding: 20px; border-radius: 10px;">
-                <ul>{results_html}</ul>
+      #使用Tailwind CSS框架，让网页瞬间变高级
+      return f"""
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="refresh" content="5"> <script src="https://cdn.tailwindcss.com"></script>
+          <title>JM Radar Dashboard</title>
+        </head>
+        <body class="bg-gray-50 p-8">
+          <div class="max-w-4xl mx-auto">
+            <header class="mb-10 text-center">
+              <h1 class=text-4xl font-extrabold text-gray-800>🚀 JM 的全网监控雷达 <span class="text-blue-600">v2.1</span></h1>
+              <p class="text-gray-500 mt-2">云端24H 自动巡逻中 ｜ 告警已接通飞书</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {status_cards}
             </div>
-            <p>最后更新时间: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+
+            <footer class="mt-12 text-center text-gray-400 text-sm">
+              最后更新时间: {time.strftime('%Y-%m-%d %H:%M:%S')}
+            </footer>
+          </div>
         </body>
-    </html>
+      </html>
     """
-    return html
+
+            
+
+
+
+    # # 如果后台线程还没来得及第一次检查，显示正在加载
+    # if not service_status_cache:
+    #     results_html = "<li>⏳ 机器人正在进行首次巡逻，请稍候...</li>"
+    # else:
+    #     results_list = []
+    #     for name, status in service_status_cache.items():
+    #         results_list.append(f"<li><b>{name}</b>: {status}</li>")
+    #     results_html = "".join(results_list)
+
+    # # 保留你原来的 CSS 样式
+    # html = f"""
+    # <html>
+    #     <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+    #         <h1>🚀 JM 的全网监控雷达 v2.1 (飞书告警版)</h1>
+    #         <div style="display: inline-block; text-align: left; border: 1px solid #ccc; padding: 20px; border-radius: 10px;">
+    #             <ul>{results_html}</ul>
+    #         </div>
+    #         <p>最后更新时间: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+    #     </body>
+    # </html>
+    # """
+    # return html
 
 # --- 6. 主程序入口 ---
 if __name__ == '__main__':
