@@ -1,24 +1,15 @@
 version: '3.8'
+
 services:
-  my-web:
-    image: jminng/jm-bandit-web:v2
+  health-monitor:
+    build: .
+    # image: jm/monitor:latest # 这个可以先注释掉，Render 会自己处理构建
     ports:
-      - "8081:80"
+      - "8082:80"  # 本地依然用 8082 访问，云端会自动映射
     volumes:
-      - ./html:/usr/share/nginx/html
+      - ./monitor.log:/app/monitor.log
     restart: always
 
   hello:
     image: nginxdemos/hello:plain-text
-    restart: always
-
-  # --- 这是今天升级的 DevOps 监控节点 ---
-  health-monitor:
-    build: .
-    ports:
-      - "8082:80" # 把容器的80端口映射到你电脑的8082
-    volumes:
-      - ./monitor.log:/app/monitor.log #新增这一行：把容器里的日志“勾”到桌面上来
-    # 核心：安装 Python 并运行我们的无限循环监控脚本
-
     restart: always
