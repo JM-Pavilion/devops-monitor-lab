@@ -95,41 +95,49 @@ def monitoring_worker():
 @app.route('/')
 def index():
     status_cards = ""
-    for name, status in service_status_cache.items():#根据状态决定颜色
-      bg_color = "bg-green-100 border-green-500 text-green-700" if "正常" in status else "bg-red-100 border-red-500 text-red-700"
-      status_cards += f"""
-      <div class="p-4 rounded-lg border-2 {bg_color} shadow-sm">
-        <h2 class=font-bold text-lg">{name}</h2>
-        <p class="text-sm opacity-80">{status}</p>
-      </div>
-      """
+    # 注意：service_status_cache 如果还没数据，会显示空卡片
+    for name, status in service_status_cache.items():
+        # 根据状态决定颜色：包含 ✅ 为绿，否则为红
+        bg_color = "bg-green-100 border-green-500 text-green-700" if "✅" in status else "bg-red-100 border-red-500 text-red-700"
+        status_cards += f"""
+        <div class="p-4 rounded-lg border-2 {bg_color} shadow-sm">
+            <h2 class="font-bold text-lg">{name}</h2>
+            <p class="text-sm opacity-80">{status}</p>
+        </div>
+        """
 
-      #使用Tailwind CSS框架，让网页瞬间变高级
-      return f"""
-      <html>
+    # 如果还没开始巡逻，显示一个加载状态
+    if not status_cards:
+        status_cards = "<p class='text-gray-400'>📡 正在初始化雷达数据...</p>"
+
+    # 这里的 return 必须顶格写在函数最末尾！
+    return f"""
+    <html>
         <head>
-          <meta charset="UTF-8">
-          <meta http-equiv="refresh" content="5"> <script src="https://cdn.tailwindcss.com"></script>
-          <title>JM Radar Dashboard</title>
+            <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="5"> 
+            <script src="https://cdn.tailwindcss.com"></script>
+            <title>JM Radar Dashboard</title>
         </head>
         <body class="bg-gray-50 p-8">
-          <div class="max-w-4xl mx-auto">
-            <header class="mb-10 text-center">
-              <h1 class=text-4xl font-extrabold text-gray-800>🚀 JM 的全网监控雷达 <span class="text-blue-600">v2.1</span></h1>
-              <p class="text-gray-500 mt-2">云端24H 自动巡逻中 ｜ 告警已接通飞书</p>
-            </header>
+            <div class="max-w-4xl mx-auto text-center">
+                <header class="mb-10">
+                    <h1 class="text-4xl font-extrabold text-gray-800">🚀 JM 全网监控雷达 <span class="text-blue-600">v2.5</span></h1>
+                    <p class="text-gray-500 mt-2">云端 24H 自动巡逻中 | 告警已接通飞书</p>
+                </header>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                    {status_cards}
+                </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {status_cards}
+                <footer class="mt-12 text-gray-400 text-sm">
+                    最后巡逻时间: {time.strftime('%Y-%m-%d %H:%M:%S')}
+                </footer>
             </div>
-
-            <footer class="mt-12 text-center text-gray-400 text-sm">
-              最后更新时间: {time.strftime('%Y-%m-%d %H:%M:%S')}
-            </footer>
-          </div>
         </body>
-      </html>
+    </html>
     """
+
 
             
 
@@ -166,5 +174,5 @@ if __name__ == '__main__':
     t.start()
 
     # 适配 Render 云端动态端口或本地端口适配
-    port = int(os.environ.get("PORT", 80))
+    port = int(os.environ.get("PORT", 10000)) # Render默认端口通常是10000
     app.run(host='0.0.0.0', port=port)
