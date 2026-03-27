@@ -11,14 +11,14 @@ app = Flask(__name__)
 # 🎯 监控名单 (保留你原来的设置)
 TARGETS = {
     "Internal-Hello-Service": "http://hello",
-    "External-Baidu": "https://www.baidu.com",
+    "External-Baidu": "https://www.baidu-error-test.com",# 故意写错域名，测试告警功能
     "External-GitHub": "https://github.com"
 }
 
 # 🚨 飞书机器人 Webhook 地址
 # 为了安全，这里使用环境变量读取。我们稍后在 Render 后台配置它。
 # 如果不配置，默认为“未填”，机器人会打印日志提示你。
-FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK_URL", "https://open.feishu.cn/open-apis/bot/v2/hook/e99f601a-3a5e-4360-b536-4949eac47a8a")
+FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK_URL")
 
 # --- 2. 共享状态区域 ---
 # 用于存储后台线程最新的监控结果，前端UI直接读取这个，速度极快
@@ -29,7 +29,7 @@ last_known_status = {}
 # --- 3. 告警发送函数 ---
 def send_feishu_alert(service_name, status_desc):
     """当服务出问题时，给飞书发消息"""
-    if FEISHU_WEBHOOK == "https://open.feishu.cn/open-apis/bot/v2/hook/e99f601a-3a5e-4360-b536-4949eac47a8a":
+    if FEISHU_WEBHOOK == "FEISHU_WEBHOOK_URL":
         print("🛑 [FEISHU ALERT] 未配置飞书 Webhook，跳过发送告警。")
         return
 
