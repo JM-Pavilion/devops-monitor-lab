@@ -11,7 +11,7 @@ app = Flask(__name__)
 # 🎯 监控名单 (保留你原来的设置)
 TARGETS = {
     "Internal-Hello-Service": "http://hello",
-    "External-Baidu": "https://www.baidu-error-test.com",# 故意写错域名，测试告警功能
+    "External-Baidu": "https://www.baidu.com",# 故意写错域名，测试告警功能
     "External-GitHub": "https://github.com"
 }
 
