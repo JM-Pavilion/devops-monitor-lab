@@ -10,10 +10,11 @@ app = Flask(__name__)
 
 # 🎯 监控名单 (保留你原来的设置)
 TARGETS = {
-    "Internal-Hello-Service": "http://hello",
-    "External-Baidu": "https://www.baidu.com",# 故意写错域名，测试告警功能
-    "External-GitHub": "https://github.com"
+    "Baidu-Search": "https://www.baidu.com.",  # 👈 看这里，故意加个点
+    "GitHub-Global": "https://github.com",
+    "Bing-Search": "https://www.bing.com"
 }
+
 
 # 🚨 飞书机器人 Webhook 地址
 # 为了安全，这里使用环境变量读取。我们稍后在 Render 后台配置它。
