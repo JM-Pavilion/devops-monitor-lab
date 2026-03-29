@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # 🎯 监控名单 (保留你原来的设置)
 TARGETS = {
-    "Baidu-Search": "https://www.baidu.com.",  # 👈 看这里，故意加个点
+    "Baidu-Search": "https://www.baidu.com",  # 👈 看这里，故意加个点
     "GitHub-Global": "https://github.com",
     "Bing-Search": "https://www.bing.com"
 }
