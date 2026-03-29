@@ -1,23 +1,27 @@
-name: Python CI/CD Lab
+name: Python CI
 
-on: [push]  # 只要有代码推送，就触发任务
+on: [push]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4  # 获取代码
-    
+    - uses: actions/checkout@v3
+
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.9'  # 安装 Python 环境
+        python-version: '3.9'
 
-    - name: Check Syntax Error
-      run: python -m py_compile bot.py  # 语法自检，防止低级错误
-
-    - name: Build Docker Image
+    - name: Install dependencies
       run: |
-        docker build -t devops-monitor-bot:latest .  # 模拟自动化打包
-        echo "✅ Docker Image built successfully!"
+        pip3 install flask requests pytest #确保云端耶装上这些零件
+
+    - name: Run tests
+      run: |
+        pytest # 执行你刚刚通过的那两个测试
+
+
+
+

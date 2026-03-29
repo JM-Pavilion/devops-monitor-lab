@@ -29,7 +29,7 @@ last_known_status = {}
 # --- 3. 告警发送函数 ---
 def send_feishu_alert(service_name, status_desc):
     """当服务出问题时，给飞书发消息"""
-    if FEISHU_WEBHOOK == "FEISHU_WEBHOOK_URL":
+    if not FEISHU_WEBHOOK:#意思是：如果这个变量是空的或者不存在
         print("🛑 [FEISHU ALERT] 未配置飞书 Webhook，跳过发送告警。")
         return
 
