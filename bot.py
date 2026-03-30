@@ -1,5 +1,5 @@
 import logging
-# import requests
+import requests
 import time
 from flask import Flask
 import os
