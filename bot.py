@@ -1,8 +1,16 @@
-import requests
+import logging
+# import requests
 import time
 from flask import Flask
 import os
 import threading  # 👈 用于开启后台巡逻线程
+
+# 配置日志：包含时间、级别和消息内容
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 
 app = Flask(__name__)
 
