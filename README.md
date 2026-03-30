@@ -1,5 +1,7 @@
 # pytest cache directory #
 
+[![Python Professional CI](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml/badge.svg)](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml)
+
 This directory contains data from the pytest's cache plugin,
 which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
 
