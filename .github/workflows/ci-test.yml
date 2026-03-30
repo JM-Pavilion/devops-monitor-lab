@@ -1,14 +1,14 @@
-name: Python CI
+name: Python Professional CI
 
 on: [push]
 
 jobs:
-  test:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-
+    - uses: actions/checkout@v4  # 👈 升级到 v4，消除昨天的黄色警告
+    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -16,12 +16,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip3 install flask requests pytest #确保云端耶装上这些零件
+        pip install flask requests pytest flake8  # 👈 增加了 flake8
 
-    - name: Run tests
+    - name: Lint with flake8
       run: |
-        pytest # 执行你刚刚通过的那两个测试
+        # 审计代码：检查语法错误和不规范的格式
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-
-
-
+    - name: Run automated tests
+      run: |
+        pytest
