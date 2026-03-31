@@ -206,12 +206,13 @@ This project uses **GitHub Actions** to implement a robust CI pipeline. Every ti
 ## 🏗️Environment Variables & Docker Config Optimization(环境变量与容器化配置优化)
 
 **Core Progress(核心进度):**
-* ✅ **Configuration Decoupling(配置解耦)**: Integrated `python-dotenv` to extract monitoring intervals from source code, enabling dynamic configuration.(引入 `python-dotenv` 库，将监控频率（Interval）从代码中抽离，实现动态配置。)
-* ✅ **Docker Volume Mapping(Docker 挂载实战)**: Configured `env_file` and `volumes` in `docker-compose.yml`, allowing the container to synchronize with the host's `.env` file.(通过 `docker-compose.yml` 的 `env_file` 和 `volumes` 挂载，使容器能实时读取宿主机的 `.env` 配置文件。)
-* ✅ **Troubleshooting(排故经验)**: Resolved naming conventions for hidden files (`.env`) and fixed `exec format error` during image building on M1 Mac.(解决了 `.env` 隐藏文件命名规范问题及 M1 Mac 芯片下的镜像构建兼容性报错。)
+* ✅ **Configuration Decoupling(配置解耦):** Integrated `python-dotenv` to extract monitoring intervals from source code, enabling dynamic configuration.(引入 `python-dotenv` 库，将监控频率（Interval）从代码中抽离，实现动态配置。)
+* ✅ **Docker Volume Mapping(Docker 挂载实战):** Configured `env_file` and `volumes` in `docker-compose.yml`, allowing the container to synchronize with the host's `.env` file.(通过 `docker-compose.yml` 的 `env_file` 和 `volumes` 挂载，使容器能实时读取宿主机的 `.env` 配置文件。)
+* ✅ **Troubleshooting(排故经验):** Resolved naming conventions for hidden files (`.env`) and fixed `exec format error` during image building on M1 Mac.(解决了 `.env` 隐藏文件命名规范问题及 M1 Mac 芯片下的镜像构建兼容性报错。)
 
-**Technical Insights(技术心得):**
-In DevOps practices, "separating configuration from code" is essential for maintaining environment consistency. By leveraging environment variables, we can modify system behavior without rebuilding images, significantly enhancing deployment flexibility.(在 DevOps 实践中，“配置与代码分离”是实现环境一致性的关键。通过环境变量，我们无需重新构建镜像即可调整系统行为，这极大地提升了部署的灵活性。)
+## Technical Insights(技术心得)
+In DevOps practices, "separating configuration from code" is essential for maintaining environment consistency. By leveraging environment variables, we can modify system behavior without rebuilding images, significantly enhancing deployment flexibility.
+(在 DevOps 实践中，“配置与代码分离”是实现环境一致性的关键。通过环境变量，我们无需重新构建镜像即可调整系统行为，这极大地提升了部署的灵活性。)
 
 
 
