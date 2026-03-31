@@ -24,6 +24,11 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt. # 它会让云端服务器去读清单
+
     - name: Run automated tests
       run: |
         pytest
