@@ -4,10 +4,15 @@ services:
   health-monitor:
     build: .
     # image: jm/monitor:latest # 这个可以先注释掉，Render 会自己处理构建
+    # 1.核心重点：引入环境变量文件
+    env_file:
+      - .env
     ports:
-      - "8082:80"  # 本地依然用 8082 访问，云端会自动映射
+      - "8082:80" # 本地依然用 8082 访问，云端会自动映射
     volumes:
       - ./monitor.log:/app/monitor.log
+      # 2.建议：如果你想在不重启容器的情况下改时间，可以挂载.env
+      - ./.env:/app/.env
     restart: always
 
   hello:

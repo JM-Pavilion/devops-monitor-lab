@@ -2,8 +2,17 @@ import logging
 import requests
 import time
 from flask import Flask
+from dotenv import load_dotenv  # 新增：导入加载工具
 import os
 import threading  # 👈 用于开启后台巡逻线程
+
+# 2. 读取变量（如果.env文件没写，默认60秒）
+# os.getenv 读取的是字符串，必须用int()转成数字
+INTERVAL = int(os.getenv("MONITOR_INTERVAL", "60"))  # 默认60秒巡逻一次，云端环境建议不要太频繁
+
+def check_service():
+    # ...这里是你原本的监控逻辑...
+    print(f"Checking services...")
 
 # 配置日志：包含时间、级别和消息内容
 logging.basicConfig(
@@ -158,35 +167,15 @@ def index():
     </html>
     """
 
-    # # 如果后台线程还没来得及第一次检查，显示正在加载
-    # if not service_status_cache:
-    #     results_html = "<li>⏳ 机器人正在进行首次巡逻，请稍候...</li>"
-    # else:
-    #     results_list = []
-    #     for name, status in service_status_cache.items():
-    #         results_list.append(f"<li><b>{name}</b>: {status}</li>")
-    #     results_html = "".join(results_list)
-
-    # # 保留你原来的 CSS 样式
-    # html = f"""
-    # <html>
-    #     <body style="font-family: sans-serif;
-    # text-align: center; padding-top: 50px;">
-    #         <h1>🚀 JM 的全网监控雷达 v2.1 (飞书告警版)</h1>
-    #         <div style="display: inline-block;
-    # text-align: left; border: 1px solid #ccc;
-    # padding: 20px; border-radius: 10px;">
-    #             <ul>{results_html}</ul>
-    #         </div>
-    #         <p>最后更新时间: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-    #     </body>
-    # </html>
-    # """
-    # return html
-
-
 # --- 6. 主程序入口 ---
 if __name__ == "__main__":
+    # 程序从这里真正开始运行
+    while True:
+        check_service()  # 调用上面的函数
+        print(f"Waiting for {INTERVAL} seconds...")
+        # 3.使用动态变量
+        time.sleep(INTERVAL)  # 使用你设置好的变量
+
     # 🎯 核心改变：在启动 Flask 之前，先启动后台监控线程
     # 设置 daemon=True，主程序退出时线程自动退出
     t = threading.Thread(target=monitoring_worker, daemon=True)
