@@ -15,16 +15,13 @@ jobs:
         with:
           python-version: '3.9'
 
-      # 关键步骤 1：安装你清单里的所有库
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 关键步骤 2：运行脚本，并把 Secret 传给程序
       - name: Run script
         env:
-          # 这行就像是把 GitHub 后台的钥匙交到程序手里
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           MONITOR_INTERVAL: 20
         run: python bot.py
