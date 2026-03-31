@@ -55,7 +55,7 @@ last_known_status = {}
 # --- 3. 告警发送函数 ---
 def send_feishu_alert(service_name, status_desc):
     """当服务出问题时，给飞书发消息"""
-    if not FEISHU_WEBHOOK_URL:  # 意思是：如果这个变量是空的或者不存在
+    if not FEISHU_WEBHOOK:  # 意思是：如果这个变量是空的或者不存在
         print("🛑 [FEISHU ALERT] 未配置飞书 Webhook，跳过发送告警。")
         return
 
@@ -68,7 +68,7 @@ def send_feishu_alert(service_name, status_desc):
     }
     try:
         # 增加 timeout，防止告警失败卡死监控核心
-        requests.post(FEISHU_WEBHOOK_URL, json=payload, timeout=5)
+        requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
         print("✅ [FEISHU ALERT] 告警消息已发送到飞书群")
     except Exception:
         print("❌ [FEISHU ALERT] 发送飞书告警失败: {e}")

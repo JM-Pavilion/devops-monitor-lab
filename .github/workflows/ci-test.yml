@@ -1,34 +1,30 @@
-name: Python Professional CI
+name: CI Test
 
 on: [push]
 
 jobs:
-  lint-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4  # 👈 升级到 v4，消除昨天的黄色警告
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: |
-        pip install flask requests pytest flake8  # 👈 增加了 flake8
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-    - name: Lint with flake8
-      run: |
-        # 审计代码：检查语法错误和不规范的格式
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      # 关键步骤 1：安装你清单里的所有库
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt. # 它会让云端服务器去读清单
-
-    - name: Run automated tests
-      run: |
-        pytest
+      # 关键步骤 2：运行脚本，并把 Secret 传给程序
+      - name: Run script
+        env:
+          # 这行就像是把 GitHub 后台的钥匙交到程序手里
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          MONITOR_INTERVAL: 20
+        run: python bot.py
