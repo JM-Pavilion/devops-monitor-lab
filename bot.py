@@ -8,7 +8,9 @@ import threading  # 👈 用于开启后台巡逻线程
 
 # 2. 读取变量（如果.env文件没写，默认60秒）
 # os.getenv 读取的是字符串，必须用int()转成数字
-INTERVAL = int(os.getenv("MONITOR_INTERVAL", "60"))  # 默认60秒巡逻一次，云端环境建议不要太频繁
+
+INTERVAL = int(os.getenv("MONITOR_INTERVAL", "60"))
+  # 默认60秒巡逻一次，云端环境建议不要太频繁
 
 def check_service():
     # ...这里是你原本的监控逻辑...
