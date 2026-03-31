@@ -8,7 +8,6 @@ import threading  # 👈 用于开启后台巡逻线程
 
 # 2. 读取变量（如果.env文件没写，默认60秒）
 # os.getenv 读取的是字符串，必须用int()转成数字
-
 INTERVAL = int(os.getenv("MONITOR_INTERVAL", "60"))
   # 默认60秒巡逻一次，云端环境建议不要太频繁
 
@@ -38,7 +37,13 @@ TARGETS = {
 # 🚨 飞书机器人 Webhook 地址
 # 为了安全，这里使用环境变量读取。我们稍后在 Render 后台配置它。
 # 如果不配置，默认为“未填”，机器人会打印日志提示你。
-FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK_URL")
+# FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK_URL")
+url = os.getenv("FEISHU_WEBHOOK_URL")
+
+if not url:
+    print(" 错误：为检测到环境变量 FEISHU_WEBHOOK_URL，请在 Render 后台的环境变量设置中添加它！")
+    # 这里可以选择 return 或者退出程序
+    exit(1)
 
 # --- 2. 共享状态区域 ---
 # 用于存储后台线程最新的监控结果，前端UI直接读取这个，速度极快
@@ -50,7 +55,7 @@ last_known_status = {}
 # --- 3. 告警发送函数 ---
 def send_feishu_alert(service_name, status_desc):
     """当服务出问题时，给飞书发消息"""
-    if not FEISHU_WEBHOOK:  # 意思是：如果这个变量是空的或者不存在
+    if not FEISHU_WEBHOOK_URL:  # 意思是：如果这个变量是空的或者不存在
         print("🛑 [FEISHU ALERT] 未配置飞书 Webhook，跳过发送告警。")
         return
 
@@ -63,7 +68,7 @@ def send_feishu_alert(service_name, status_desc):
     }
     try:
         # 增加 timeout，防止告警失败卡死监控核心
-        requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
+        requests.post(FEISHU_WEBHOOK_URL, json=payload, timeout=5)
         print("✅ [FEISHU ALERT] 告警消息已发送到飞书群")
     except Exception:
         print("❌ [FEISHU ALERT] 发送飞书告警失败: {e}")
