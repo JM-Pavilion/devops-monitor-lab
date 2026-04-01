@@ -215,4 +215,36 @@ In DevOps practices, "separating configuration from code" is essential for maint
 (在 DevOps 实践中，“配置与代码分离”是实现环境一致性的关键。通过环境变量，我们无需重新构建镜像即可调整系统行为，这极大地提升了部署的灵活性。)
 
 
+## 📝 Introduction(项目简介)
+A lightweight Python-based service monitor that tracks website availability and sends real-time alerts via Feishu (Lark) Webhooks. It features a Dockerized environment and a Flask dashboard.(一个基于 Python 的轻量级服务监控器，实时追踪网站可用性，并通过飞书机器人发送告警,支持 Docker 化部署，并自带 Flask 监控面板。)
+
+
+## 🛠️ Tech Stack(技术栈)
+- **Language**: Python 3.9
+- **Framework**: Flask (Dashboard)
+- **Deployment**: Docker & Docker Compose
+- **Platform**: Render (PaaS)
+- **CI/CD**: GitHub Actions
+
+
+## ⚠️ Lessons Learned (Troubleshooting) / 踩坑记录与复习
+
+### 1. Dependency Management(依赖管理)
+- **Issue**: Forgetting to add `flask` or `python-dotenv` to `requirements.txt`.(忘记将"Flask"或"Python-Dotenv"添加到"Requirements.txt"。)
+- **Lesson**: Even if the code is written in `bot.py`, the cloud environment will **ignore** the libraries if they aren't listed in the "shopping list" (`requirements.txt`). This leads to a `ModuleNotFoundError`.(即使代码是用"bot.py"编写的，如果库没有列在"购物清单"("Requirements.txt")中，云环境也会**忽略**这些库。这导致了"ModuleNotFoundError"。)
+
+
+### 2. YAML Indentation(YAML 缩进)
+- **Issue**: GitHub Actions failed due to `mapping values are not allowed`.(由于“不允许使用映射值”，GitHub操作失败。)
+- **Lesson**: YAML is extremely sensitive to spaces. Never use Tabs; always use **2 spaces** for indentation.(YAML对空格非常敏感。永远不要使用制表符；缩进总是使用"2个空格"。)
+
+### 3. CI/CD Logic(自动化测试逻辑)
+- **Issue**: GitHub Actions hanging forever.(GitHub的操作将永远挂起。)
+- **Lesson**: Use a `CI=true` environment variable to tell the script to exit after one loop during testing, preventing the pipeline from being blocked by the infinite `while True` loop.(在测试过程中，使用"ci=true"环境变量告诉脚本在循环一次后退出，防止管道被无限的"while true"循环阻塞。)
+
+
+## 🚀 How to Deploy(如何部署)
+1. Configure `FEISHU_WEBHOOK_URL` in your environment variables.(在环境变量中配置“feishu_webhook_url”。)
+2. Push code to GitHub; the CI pipeline will automatically run.(将代码推送到GitHub；CI管道将自动运行。)
+3. Deploy on Render using "Clear build cache & deploy" for the first time.(首次使用“清除生成缓存和部署”在渲染时进行部署。)
 
