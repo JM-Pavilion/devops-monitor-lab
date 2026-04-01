@@ -20,8 +20,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run script
+      - name: Run script test
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           MONITOR_INTERVAL: 20
+          # 这个变量是神来之笔：告诉程序当前在 GitHub 里，测一遍就停！
+          CI: "true"
         run: python bot.py
