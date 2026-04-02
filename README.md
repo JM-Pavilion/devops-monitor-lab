@@ -152,22 +152,24 @@ docker-compose up -d
 * **Port Forwarding Mastery:** Successfully implemented port mapping (8085:80) to demonstrate network isolation between host and container. (成功实现端口转发，演示了宿主机与容器间的网络隔离。)
 * **Local Runtime Validation:** Verified the integrity of the built image by deploying a standalone container instance. (通过部署独立的容器实例，验证了构建镜像的完整性。)
 
-## 🚀 Network Monitor v2.0
+# 🚀 Network Monitor v2.0
+
+---
 
 This is a full-network service monitoring system based on Python Flask and Docker. It can monitor the operation status of internal Docker network services and external Internet factories at the same time.    (这是一个基于 Python Flask 和 Docker 的全网服务监控系统。它能够同时监控内部 Docker 网络服务以及外部互联网大厂的运行状态。)
 
-### ✨ Functional characteristics(功能特性)
+## ✨ Functional characteristics(功能特性)
 - **Real-time monitoring(实时监控)**：Automatically check the response status of the target service every second.  (每秒自动检查目标服务的响应状态。)
 - **Multi-dimensional detection(多维度探测):** Support internal container services (such as `hello`) and external websites (such as `Baidu`, `GitHub`).  (支持内部容器服务（如 `hello`）和外部网站（如 `Baidu`, `GitHub`）。)
 - **Container deployment(容器化部署):** One-click start through Docker Compose, environment zero configuration.  (通过 Docker Compose 一键启动，环境零配置。)
 
-### 🛠️ Technical stack (技术栈)
+## 🛠️ Technical stack (技术栈)
 - **Language**: Python 3.9
 - **Framework**: Flask (Web 界面展示)
 - **Library**: Requests (网络请求), Threading (多线程并行监控)
 - **Infrastructure**: Docker, Docker Compose, GitHub Actions (CI)
 
-### 🚀 Quick start (快速启动)
+## 🚀 Quick start (快速启动)
 1. Make sure that Docker and Docker Compose are installed.  (确保已安装 Docker 和 Docker Compose。)
 2. **Run in the root directory(在根目录运行):**
    ```bash
@@ -248,3 +250,39 @@ A lightweight Python-based service monitor that tracks website availability and 
 2. Push code to GitHub; the CI pipeline will automatically run.(将代码推送到GitHub；CI管道将自动运行。)
 3. Deploy on Render using "Clear build cache & deploy" for the first time.(首次使用“清除生成缓存和部署”在渲染时进行部署。)
 
+## How to Debug Inside Container(如何进入容器调试)
+1. docker ps to find the ID.
+2. docker exec -it <ID> /bin/sh to enter.
+3. tail -f monitor.log to check real-time logs.
+
+# 🚀 JM Radar Monitor v2.5 (JM 全网监控雷达)
+
+---
+
+## 🛠️ Tech Stack (技术栈)
+- **Monitoring**: Prometheus-style log tracking & `docker stats`
+
+## ⚠️ Debugging & Troubleshooting (踩坑与性能调优记录)
+
+### 1. Container File System Lock (容器文件系统锁定)
+- **Issue**: Running `sed -i` inside the container on a mounted `.env` file failed with `Device or resource busy`.(在容器内对装入的".env"文件运行"sed-i"失败，原因是"设备或资源忙"。)
+- **Reason**: Docker bind-mounts lock the file at the kernel level, preventing `sed` from performing its "delete-and-rename" operation.(Docker绑定挂载在内核级别锁定文件，阻止"sed"执行其"删除并重命名"操作。)
+- **Solution**: Used redirection instead: `sed 's/old/new/g' .env > .env.tmp && cat .env.tmp > .env`.(改为使用重定向:“sed's/old/new/g'.env>.env.tmp&&cat.env.tmp>.env”。)
+
+### 2. Minimal Image Tooling (极简镜像的工具缺失)
+- **Issue**: Command `top` or `ps` resulted in `not found`.(命令"top"或"ps"导致"not found"。)
+- **Reason**: Production-grade "Slim" images strip away non-essential binaries to reduce attack surface and image size.(生产级的“苗条”图像去除非必要的二进制文件，以减少攻击面和图像大小。)
+- **Solution**: 
+  - For debugging: `apt-get update && apt-get install -y procps`.
+  - Best Practice: Monitored resource usage from the host using `docker stats`.(使用“Docker Stats”监控主机的资源使用情况。)
+
+### 3. CI/CD Pipeline Blockage (流水线阻塞)
+- **Issue**: GitHub Actions hung indefinitely during the test phase.(在测试阶段，GitHub的操作会无限期地暂停。)
+- **Reason**: The infinite `while True` loop in the main script blocked the CI process.(主脚本中的无限“while true”循环阻塞了CI进程。)
+- **Solution**: Implemented a `CI` environment variable check to force the script to exit after one successful loop in testing environments.(实现了一个“CI”环境变量检查，以强制脚本在测试环境中成功循环一次后退出。)
+
+## 🚀 How to Run (如何运行)
+1. Configure your Webhook URL in `.env`.
+2. Run `docker-compose up -d`.
+3. Access Dashboard at `http://localhost:80`.
+4. Debug via `docker exec -it <container_id> /bin/sh`.
