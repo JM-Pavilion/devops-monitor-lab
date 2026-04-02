@@ -91,37 +91,65 @@ def index():
     status_cards = ""
     for name, status in service_status_cache.items():
         bg_color = "bg-green-100 border-green-500 text-green-700" if "✅" in status else "bg-red-100 border-red-500 text-red-700"
+        ping_dot = '<span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full'+''
+        'h-3 w-3 bg-green-500"></span></span>'if "✅" in status else ""
+
         status_cards += f'''
-        <div class="p-4 rounded-lg border-2 {bg_color} shadow-sm">
-            <h2 class="font-bold text-lg">{name}</h2>
-            <p class="text-sm opacity-80">{status}</p>
+        <div class="p-4 rounded-xl border-2 {bg_color} shadow-lg transition-all duratiion-500 hover:scale-105">
+          <div class="flex justify-between items-start">
+            <h2 class="font-bold text-xl">{name}</h2>
+            {ping_dot}
+            </div>
+            <p class="text-sm mt-2 font-mono">{status}</p>
         </div>
         '''
 
     if not status_cards:
         status_cards = "<p class='text-gray-400'>📡 正在初始化雷达数据，请稍等几秒后刷新...</p>"
 
-    return f'''
+        return f"""
     <html>
         <head>
             <meta charset="UTF-8">
             <meta http-equiv="refresh" content="5">
             <script src="https://cdn.tailwindcss.com"></script>
             <title>JM Radar Dashboard</title>
+            <style>
+                @keyframes pulse-soft {{
+                    0%, 100% {{ opacity: 1; }}
+                    50% {{ opacity: 0.7; }}
+                }}
+                .animate-pulse-soft {{ animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }}
+            </style>
         </head>
-        <body class="bg-gray-50 p-8">
-            <div class="max-w-4xl mx-auto text-center">
-                <header class="mb-10">
-                    <h1 class="text-4xl font-extrabold text-gray-800">🚀 JM 全网监控雷达</h1>
-                    <p class="text-gray-500 mt-2">云端 24H 自动巡逻中 | 告警已接通飞书</p>
+        <body class="bg-slate-900 text-slate-100 p-8">
+            <div class="max-w-5xl mx-auto">
+                <header class="flex justify-between items-end mb-12 border-b border-slate-700 pb-6">
+                    <div>
+                        <h1 class="text-5xl font-black tracking-tight text-white">
+                            JM <span class="text-blue-500">RADAR</span>
+                        </h1>
+                        <p class="text-slate-400 mt-2 font-mono uppercase tracking-widest text-xs">Cloud Infrastructure Monitoring</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500 font-mono">SYSTEM STATUS: <span class="text-green-400">ACTIVE</span></div>
+                        <div class="text-xs text-slate-500 font-mono">INTERVAL: {INTERVAL}s</div>
+                    </div>
                 </header>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {status_cards}
                 </div>
+
+                <footer class="mt-16 pt-8 border-t border-slate-800 flex justify-between items-center text-slate-500 text-xs font-mono">
+                    <div>© 2026 JM DEVOPS LAB</div>
+                    <div>LAST SCAN: {time.strftime('%H:%M:%S')}</div>
+                </footer>
             </div>
         </body>
     </html>
-    '''
+    """
+
 
 # --- 主程序入口 ---
 if __name__ == "__main__":
