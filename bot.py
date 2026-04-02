@@ -90,24 +90,35 @@ def monitoring_worker():
 def index():
     status_cards = ""
     for name, status in service_status_cache.items():
-        bg_color = "bg-green-100 border-green-500 text-green-700" if "✅" in status else "bg-red-100 border-red-500 text-red-700"
-        ping_dot = '<span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full'+''
-        'h-3 w-3 bg-green-500"></span></span>'if "✅" in status else ""
+        # 修正颜色和逻辑
+        is_ok = "✅" in status
+        bg_color = "bg-green-100 border-green-500 text-green-700" if is_ok else "bg-red-100 border-red-500 text-red-700"
+        
+        # 修正 ping_dot 字符串拼接
+        ping_dot = ""
+        if is_ok:
+            ping_dot = (
+                '<span class="relative flex h-3 w-3">'
+                '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>'
+                '<span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>'
+                '</span>'
+            )
 
         status_cards += f'''
-        <div class="p-4 rounded-xl border-2 {bg_color} shadow-lg transition-all duratiion-500 hover:scale-105">
+        <div class="p-4 rounded-xl border-2 {bg_color} shadow-lg transition-all duration-500 hover:scale-105">
           <div class="flex justify-between items-start">
             <h2 class="font-bold text-xl">{name}</h2>
             {ping_dot}
-            </div>
-            <p class="text-sm mt-2 font-mono">{status}</p>
+          </div>
+          <p class="text-sm mt-2 font-mono">{status}</p>
         </div>
         '''
 
     if not status_cards:
         status_cards = "<p class='text-gray-400'>📡 正在初始化雷达数据，请稍等几秒后刷新...</p>"
 
-        return f"""
+    # --- 重要：这里的 return 必须跟 if 对齐，确保无论如何都会返回 HTML ---
+    return f"""
     <html>
         <head>
             <meta charset="UTF-8">
@@ -149,6 +160,7 @@ def index():
         </body>
     </html>
     """
+
 
 
 # --- 主程序入口 ---
