@@ -286,3 +286,41 @@ A lightweight Python-based service monitor that tracks website availability and 
 2. Run `docker-compose up -d`.
 3. Access Dashboard at `http://localhost:80`.
 4. Debug via `docker exec -it <container_id> /bin/sh`.
+
+
+---
+
+# JM's DevOps Lab: Infrastructure as Code (Terraform + LocalStack) / (实验室：基础设施即代码实战)
+
+
+### 🚀 Project Overview(项目概览)
+This project demonstrates the deployment of a full-stack AWS infrastructure on a local environment using **Terraform** and **LocalStack**. It mimics a real-world cloud environment without incurring any costs.(本项目展示了如何使用 **Terraform** 和 **LocalStack** 在本地环境部署全套 AWS 基础设施。它模拟了真实云环境，且不会产生任何费用。)
+
+
+### 🛠️ Tech Stack(技术栈)
+- **IaC Tool**: Terraform
+- **Cloud Simulator**: LocalStack (Docker)
+- **Cloud Provider**: AWS (Mocked)
+- **OS**: Amazon Linux 2 (Simulated)
+
+### 🏗️ Architecture Components(架构组件)
+The Terraform configuration includes(Terraform 配置包含以下内容):
+1. **VPC**: A custom Virtual Private Cloud with CIDR `10.0.0.0/16`.(自定义虚拟私有云，网段为 `10.0.0.0/16`。)
+2. **Subnet**: A public subnet configured in `ap-southeast-1a`.(位于新加坡 A 区的公有子网。)
+3. **Internet Gateway**: Enabling internet connectivity for the VPC.(为 VPC 开启互联网连接的网关。)
+4. **Route Table**: Configuring traffic routing to the IGW.(配置通往互联网网关的路由条目。)
+5. **Security Group**: Firewall rules allowing SSH (22) and HTTP (80) traffic.(防火墙规则，允许 SSH (22) 和 HTTP (80) 流量。)
+6. **EC2 Instance**: A virtual machine running with a dynamically fetched AMI.(使用动态获取的 AMI 镜像启动的虚拟机。)
+
+### 📖 Key Learnings / 核心收获
+- Mastered the **Terraform Workflow** {`init`, `plan`, `apply`, `destroy`}.(掌握了 **Terraform 工作流**（初始化、计划、应用、销毁）。)
+- Learned to handle **Resource Dependencies** and **Data Sources**.(学习了如何处理**资源依赖**和**动态数据源**。)
+- Practiced **Infrastructure Troubleshooting** (debugging AMI ID mismatches)./(练习了**基础设施排错**（调试 AMI ID 不匹配问题）。)
+
+---
+*Created by JM as part of the 2026-2027 Career Sprint.*
+
+
+
+
+
