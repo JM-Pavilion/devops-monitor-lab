@@ -321,6 +321,14 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 *Created by JM as part of the 2026-2027 Career Sprint.*
 
 
+## 🚀 Containerized Infrastructure Deployment(容器化基础设施部署) (2026-04-09)
+
+### 🇺🇸 English Summary
+In this iteration, we focused on "drilling down" into the end-to-end deployment workflow(在本次迭代中，我们成功实现了监控系统的“降速打穿”学习，完成了从基础设施自动化到应用容器化的全链路部署：):
+* **Infrastructure Enhancement(基础设施增强)**: Optimized AWS Security Groups via Terraform, exposing Port 80 for Web traffic and implementing Nginx persistence using `user_data`.(使用 Terraform 优化了 AWS 安全组配置，开放 80 端口用于 Web 服务，并通过 `user_data` 实现了 Nginx 的自启动管理。)
+* **Containerization(应用容器化)**: Built a custom Docker image, applying the "pre-packaged meal" concept to ensure environmental consistency.(编写并构建了 Docker 镜像（Image），通过“预制菜”理念解决环境一致性问题。)
+* **Network Troubleshooting(网络链路优化)**: Resolved port mismatch issues (Host 5001 to Container 10000) and updated Flask binding from `127.0.0.1` to `0.0.0.0` for external accessibility.(解决了容器内外端口映射不匹配（10000 vs 5001）以及 Flask 在 Docker 内的监听地址问题（从 127.0.0.1 转向 0.0.0.0）。)
+* **Multi-device Verification(多端验证)**: Verified accessibility across both desktop and mobile devices within the same local network.(实现了同一局域网下移动端与 PC 端的同步访问验证。)
 
 
 

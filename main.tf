@@ -140,8 +140,20 @@ resource "aws_instance" "jm_web_server" {
   # 自动分配公网 IP，这样我们才能从外面连它
   associate_public_ip_address = true
 
+
+  # --- 嚼碎点：User Data (云服务器的启动脚本) ---
+  # 这段脚本会在服务器第一次开机时自动执行
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y nginx
+              systemctl start nginx
+              systemctl enable nginx
+              echo "<h1>Welcome JM! Your Monitoring System is coming soon...</h1>" > /usr/share/nginx/html/index.html
+              EOF
+
   tags = {
-    Name = "jm-first-ec2"
+    Name = "jm-monitor-host"
   }
 }
 
