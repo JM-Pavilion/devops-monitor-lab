@@ -321,7 +321,7 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 
 ---
 
-## 🚀 Containerized Infrastructure Deployment(容器化基础设施部署) (2026-04-09)
+## 🚀 Step 1: Containerized Infrastructure Deployment(容器化基础设施部署) (2026-04-09)
 
 ### In this iteration, we focused on "drilling down" into the end-to-end deployment workflow(在本次迭代中，我们成功实现了监控系统的“降速打穿”学习，完成了从基础设施自动化到应用容器化的全链路部署：):
 * **Infrastructure Enhancement(基础设施增强)**: Optimized AWS Security Groups via Terraform, exposing Port 80 for Web traffic and implementing Nginx persistence using `user_data`.(使用 Terraform 优化了 AWS 安全组配置，开放 80 端口用于 Web 服务，并通过 `user_data` 实现了 Nginx 的自启动管理。)
@@ -330,4 +330,10 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 * **Multi-device Verification(多端验证)**: Verified accessibility across both desktop and mobile devices within the same local network.(实现了同一局域网下移动端与 PC 端的同步访问验证。)
 
 
+## 🤖 Step 2: Automated CI Pipeline with GitHub Actions(使用 GitHub Actions 构建自动化 CI 流水线) (2026-04-10)
+
+### Successfully implemented a fully automated Continuous Integration (CI) workflow(今天成功打通了从“代码提交”到“镜像入库”的全自动化流程 (CI)):
+* **Security Management(安全管理)**: Configured Docker Hub credentials in GitHub Secrets using Personal Access Tokens (PAT) instead of plain-text passwords, adhering to the principle of least privilege.(在 GitHub Secrets 中配置了 Docker Hub 凭据，通过 Personal Access Token (PAT) 代替明文密码，遵循最小权限原则。)
+* **Pipeline Automation(流水线自动化)**: Created `.github/workflows/docker-image.yml` to trigger automatic builds whenever changes are pushed to the `main` branch.(编写了 `.github/workflows/docker-image.yml`，实现了基于 `main` 分支推送触发的自动构建。)
+* **Image Registry(镜像托管)**: Successfully pushed the Docker image to a cloud registry (Docker Hub), eliminating local environment dependencies and paving the way for Continuous Deployment (CD) on AWS.(成功将打包好的 Docker 镜像推送到云端仓库 (Docker Hub)，消除了本地环境依赖，为下一步的云端部署 (CD) 打下坚实基础。)
 
