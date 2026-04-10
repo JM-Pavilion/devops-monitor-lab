@@ -1,0 +1,28 @@
+name: Docker Build and Push
+
+# 触发条件：当我们向 main 分支 push 代码时执行
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest # 在 GitHub 提供的免费 Linux 机器上跑
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3 # 第一步：把你的代码拉取到这台 Linux 上
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2 # 第二步：去保险柜拿钥匙登录
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4 # 第三步：打包并上传
+      with:
+        context: .
+        push: true
+        # 注意：这里换成你自己的 Docker Hub 用户名/镜像名
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/jm-monitor:latest
