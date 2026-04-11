@@ -93,7 +93,7 @@ resource "aws_security_group" "jm_web_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # 允许全世界访问
   }
 
   # 出站规则 (Egress)：里面的流量能去哪？
@@ -140,17 +140,27 @@ resource "aws_instance" "jm_web_server" {
   # 自动分配公网 IP，这样我们才能从外面连它
   associate_public_ip_address = true
 
+  # 只要说明书改了，就直接给我换台新电脑
+  user_data_replace_on_change = true
+
 
   # --- 嚼碎点：User Data (云服务器的启动脚本) ---
   # 这段脚本会在服务器第一次开机时自动执行
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install -y nginx
-              systemctl start nginx
-              systemctl enable nginx
-              echo "<h1>Welcome JM! Your Monitoring System is coming soon...</h1>" > /usr/share/nginx/html/index.html
-              EOF
+user_data = <<-EOF
+            #!/bin/bash
+            # 1. 更新系统并安装 Docker
+            sudo yum update -y
+            sudo amazon-linux-extras install docker -y
+            
+            # 2. 启动 Docker 服务
+            sudo service docker start
+            sudo usermod -a -G docker ec2-user
+            
+            # 3. 从云端超市拉取你的“预制菜”并运行
+            # 我们把容器的 10000 端口映射到服务器的 80 端口（这样访问时就不用输端口号了）
+            sudo docker run -d --restart always -p 80:10000 jminng/jm-monitor:latest
+            EOF
+
 
   tags = {
     Name = "jm-monitor-host"

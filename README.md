@@ -337,3 +337,10 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 * **Pipeline Automation(流水线自动化)**: Created `.github/workflows/docker-image.yml` to trigger automatic builds whenever changes are pushed to the `main` branch.(编写了 `.github/workflows/docker-image.yml`，实现了基于 `main` 分支推送触发的自动构建。)
 * **Image Registry(镜像托管)**: Successfully pushed the Docker image to a cloud registry (Docker Hub), eliminating local environment dependencies and paving the way for Continuous Deployment (CD) on AWS.(成功将打包好的 Docker 镜像推送到云端仓库 (Docker Hub)，消除了本地环境依赖，为下一步的云端部署 (CD) 打下坚实基础。)
 
+
+## ☁️ Step 3: Simulated Cloud Deployment with LocalStack(使用 LocalStack 进行模拟云端部署) (2026-04-11)
+
+### Successfully simulated the Continuous Deployment (CD) pipeline in a production-like environment(今天成功模拟了生产环境的持续部署 (CD) 流程):
+* **Environment Adaptation(环境变通)**: Utilized LocalStack as an AWS cloud emulator to validate Infrastructure-as-Code (IaC) logic under credential constraints.(由于真实 AWS 账户权限限制，采用了 LocalStack 作为云端模拟器，成功验证了基础设施即代码 (IaC) 的逻辑。)
+* **Container Lifecycle(容器化闭环)**: Manually pulled the `jminng/jm-monitor:latest` image, which was automatically built and pushed by GitHub Actions.(手动拉取了由 GitHub Actions 自动生成的 `jminng/jm-monitor:latest` 镜像。)
+* **Service Exposure(端口映射与上线)**: Configured port mapping (`8080:10000`) between the container and host, successfully replicating cloud-based public access and verifying service health.(实现了容器与宿主机的端口转发 (`8080:10000`)，成功在本地模拟了云端公网访问的效果，验证了服务的可用性。)
