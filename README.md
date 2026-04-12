@@ -344,3 +344,19 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 * **Environment Adaptation(环境变通)**: Utilized LocalStack as an AWS cloud emulator to validate Infrastructure-as-Code (IaC) logic under credential constraints.(由于真实 AWS 账户权限限制，采用了 LocalStack 作为云端模拟器，成功验证了基础设施即代码 (IaC) 的逻辑。)
 * **Container Lifecycle(容器化闭环)**: Manually pulled the `jminng/jm-monitor:latest` image, which was automatically built and pushed by GitHub Actions.(手动拉取了由 GitHub Actions 自动生成的 `jminng/jm-monitor:latest` 镜像。)
 * **Service Exposure(端口映射与上线)**: Configured port mapping (`8080:10000`) between the container and host, successfully replicating cloud-based public access and verifying service health.(实现了容器与宿主机的端口转发 (`8080:10000`)，成功在本地模拟了云端公网访问的效果，验证了服务的可用性。)
+
+
+
+## 🐧 Step 4: Linux Systems & Automation(Linux 系统管理与自动化) (2026-04-12)
+
+### 🇺🇸 English Summary
+* **Automation Scripting(自动化脚本)**: Developed `deploy.sh`, a wrapper script for streamlined container management (clean-up, pull, and re-run).(编写了 `deploy.sh` 包装脚本，实现了容器销毁、镜像拉取、容器重启的一键自动化。)
+* **System Diagnostics(系统诊断)**: Mastered `lsof`, `docker stats`, and `docker logs` to monitor network ports, resource utilization, and real-time execution logs.(掌握了 `lsof`、`docker stats` 和 `docker logs` 命令，能够实时监控系统端口占用、资源消耗和运行日志。)
+* **Permission Control(权限管理)**: Gained a solid understanding of Linux FHS and access control (chmod/sudo), establishing foundational system security awareness.(理解了 Linux 的 FHS 文件系统结构和权限控制（chmod/sudo），初步建立了系统安全意识。)
+
+
+
+
+
+
+
