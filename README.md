@@ -349,11 +349,18 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 
 ## 🐧 Step 4: Linux Systems & Automation(Linux 系统管理与自动化) (2026-04-12)
 
-### 🇺🇸 English Summary
+###  
 * **Automation Scripting(自动化脚本)**: Developed `deploy.sh`, a wrapper script for streamlined container management (clean-up, pull, and re-run).(编写了 `deploy.sh` 包装脚本，实现了容器销毁、镜像拉取、容器重启的一键自动化。)
 * **System Diagnostics(系统诊断)**: Mastered `lsof`, `docker stats`, and `docker logs` to monitor network ports, resource utilization, and real-time execution logs.(掌握了 `lsof`、`docker stats` 和 `docker logs` 命令，能够实时监控系统端口占用、资源消耗和运行日志。)
-* **Permission Control(权限管理)**: Gained a solid understanding of Linux FHS and access control (chmod/sudo), establishing foundational system security awareness.(理解了 Linux 的 FHS 文件系统结构和权限控制（chmod/sudo），初步建立了系统安全意识。)
+* **Permission Control(权限管理)**: Gained a solid understanding of Linux FHS and access control (chmod/sudo), establishing f呼叫把这个气氛oundational system security awareness.(理解了 Linux 的 FHS 文件系统结构和权限控制（chmod/sudo），初步建立了系统安全意识。)
 
+## 🎼 Step 5 & 6: Orchestration, Health-checks & Self-healing(编排、健康检查与自愈机制) (2026-04-13)
+
+### 
+* **Service Orchestration(服务编排)**: Fully transitioned from imperative shell scripts to declarative `docker-compose.yml`, managing a multi-container stack.(彻底弃用手动脚本，通过 `docker-compose.yml` 声明式管理 `monitor` 和 `nginx` 双服务。)
+* **Self-healing Mechanism(自愈机制)**: Implemented `restart: always` and verified recovery behavior. Distinguished between administrative removal and unexpected runtime failure.(配置 `restart: always`。验证了程序崩溃后的自动重启，并理解了手动删除容器与进程异常退出的区别。)
+* **Service Observability(可观测性)**: Integrated custom `healthcheck` probes. Diagnosed and resolved a port mismatch issue (80 vs 10000) using `docker inspect`.(实现了基于 `curl` 的健康检查。解决了因内部端口不匹配（80 vs 10000）导致的 `unhealthy` 状态，掌握了 `docker inspect` 诊断方法。)
+* **Config Decoupling(配置解耦)**: Utilized `.env` files for environment variable injection, ensuring the separation of code and configuration (12-Factor App methodology).(利用 `.env` 文件动态注入环境变量（如监控频率、Webhook），实现了“镜像一次构建，多环境动态配置”。)
 
 
 

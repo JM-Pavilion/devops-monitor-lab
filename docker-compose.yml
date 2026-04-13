@@ -1,12 +1,32 @@
-version: '3.8'
-
 services:
+  # 1. 你的核心监控服务
   health-monitor:
-    build: .
+    image: jminng/jm-monitor:latest
+    container_name: jm-monitor-service
+    environment:
+      - TARGET_URL=http://web-target
     env_file:
       - .env
     ports:
-      - "10000:10000" # 修复：代码里 Flask 用的是 10000 端口，这里要保持一致
-    volumes:
-      - ./.env:/app/.env
+      - "8080:10000"
+    networks:
+      - jm-network
     restart: always
+    # --- 修正点：healthcheck 必须缩进在服务名称下方 ---
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # 2. 模拟一个被监控的 Web 服务
+  web-target:
+    image: nginx:alpine
+    container_name: jm-web-target
+    networks:
+      - jm-network
+
+networks:
+  jm-network:
+    driver: bridge
