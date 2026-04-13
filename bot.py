@@ -3,29 +3,31 @@ import requests
 import time
 import os
 import threading
+import sys
 from flask import Flask
 from dotenv import load_dotenv
 
-# 1. 加载本地 .env 文件（云端环境会自动忽略这一步）
 load_dotenv()
 
-# --- 配置区域 ---
-INTERVAL = int(os.getenv("MONITOR_INTERVAL", "60"))
+# --- 1.初始化全局变量（防止 Flask 报错）---
+service_status_cache = {}
+last_known_status = {}
+app = Flask(__name__)
+
+# --- 2.配置区域 ---
+INTERVAL = int(os.getenv("MONITOR_INTERVAL", "20"))
 # 统一使用 FEISHU_WEBHOOK 变量名
 FEISHU_WEBHOOK = os.getenv("FEISHU_WEBHOOK_URL")
-
 TARGETS = {
     "Baidu-Search": "https://www.baidu.com",
     "GitHub-Global": "https://github.com",
     "Bing-Search": "https://www.bing.com",
 }
 
-# --- 1.确保日志目录存在 ---
+# --- 3.日志配置 ---
 LOG_DIR = os.getenv("LOG_PATH", "./logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR, exist_ok=True)
-
-# --- 2.配置日志格式 ---
 log_format = '%(asctime)s - %(message)s'
 log_file = os.path.join(LOG_DIR, 'monitor.log')
 
@@ -36,8 +38,6 @@ logging.basicConfig(level=logging.INFO, format=log_format, handlers=[
 ])
 
 logging.info("🚀 监控服务已启动，日志记录开始...")
-
-
 
 # --- 告警函数 ---
 def send_feishu_alert(service_name, status_desc):
@@ -173,15 +173,13 @@ def index():
     </html>
     """
 
-
-
 # --- 主程序入口 ---
 if __name__ == "__main__":
     # 如果是 CI 环境：直接跑一次逻辑，不启动网页，也不用开多线程
     if os.getenv("CI") == "true":
         print("⚠️ CI mode detected: Executing a single check for validation...")
         # 直接调用你的函数（不要在后台线程跑，就在当前跑完它）
-        monitoring_worker_once() 
+        monitoring_worker()
         print("✅ CI 自动化测试通过！")
         import sys
         sys.exit(0)
