@@ -21,9 +21,9 @@ TARGETS = {
 }
 
 # --- 1.确保日志目录存在 ---
-LOG_DIR = "/app/logs"
+LOG_DIR = os.getenv("LOG_PATH", "./logs")
 if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+    os.makedirs(LOG_DIR, exist_ok=True)
 
 # --- 2.配置日志格式 ---
 log_format = '%(asctime)s - %(message)s'
@@ -177,14 +177,20 @@ def index():
 
 # --- 主程序入口 ---
 if __name__ == "__main__":
-    # 1. 启动后台巡逻线程
+    # 如果是 CI 环境：直接跑一次逻辑，不启动网页，也不用开多线程
+    if os.getenv("CI") == "true":
+        print("⚠️ CI mode detected: Executing a single check for validation...")
+        # 直接调用你的函数（不要在后台线程跑，就在当前跑完它）
+        monitoring_worker_once() 
+        print("✅ CI 自动化测试通过！")
+        import sys
+        sys.exit(0)
+
+    # 如果是正常环境：启动后台线程 + 启动 Flask
     t = threading.Thread(target=monitoring_worker, daemon=True)
     t.start()
 
-    # 2. 启动网页服务器 (如果是 CI 测试环境则不启动网页，直接宣告成功)
-    if os.getenv("CI") != "true":
-        port = int(os.environ.get("PORT", 10000))
-        print(f"🌐 Web 界面已启动，端口: {port}")
-        app.run(host="0.0.0.0", port=port)
-    else:
-        print("✅ CI 自动化测试通过！")
+    port = int(os.environ.get("PORT", 10000))
+    print(f"🌐 Web 界面已启动，端口: {port}")
+    app.run(host="0.0.0.0", port=port)
+

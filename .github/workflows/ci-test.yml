@@ -22,8 +22,9 @@ jobs:
 
       - name: Run script test
         env:
+          # 关键：这里加上 LOG_PATH，让程序在 CI 环境下不往根目录写
+          LOG_PATH: "./logs"
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           MONITOR_INTERVAL: 20
-          # 这个变量是神来之笔：告诉程序当前在 GitHub 里，测一遍就停！
           CI: "true"
         run: python bot.py
