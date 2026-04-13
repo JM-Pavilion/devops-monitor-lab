@@ -1,18 +1,22 @@
 #!/bin/bash
 
-# 定义变量，方便以后修改
-IMAGE_NAME="jminng/jm-monitor:latest"
-CONTAINER_NAME="jm-cloud-sim"
+# 定义颜色，让输出更漂亮（澳洲公司常用的脚本风格）
+GREEN='\033[0:32m'
+NC='\033[0m' # No Color
 
-echo "🚀 Starting Deployment..."
+echo -e "${GREEN}🚀 [Step 1/4] Cleaning up orphaned containers...${NC}"
+docker-compose down --remove-orphans
 
-# 1. 如果旧容器在运行，先把它杀掉 (清理现场)
-docker rm -f $CONTAINER_NAME 2>/dev/null
+echo -e "${GREEN}📦 [Step 2/4] Pulling latest images...${NC}"
+docker-compose pull
 
-# 2. 拉取最新镜像
-docker pull $IMAGE_NAME
+echo -e "${GREEN}🏗️ [Step 3/4] Launching the stack...${NC}"
+# --build 确保如果本地代码改了，镜像也会尝试重新构建
+docker-compose up -d --build
 
-# 3. 启动新容器
-docker run -d --name $CONTAINER_NAME -p 8080:10000 $IMAGE_NAME
+echo -e "${GREEN}🔍 [Step 4/4] Verifying health status...${NC}"
+# 给容器一点点“热身”时间
+sleep 5
+docker-compose ps
 
-echo "✅ Deployment successful! Service is running on http://localhost:8080"
+echo -e "${GREEN}✅ All systems are operational! Check logs/monitor.log for details.${NC}"

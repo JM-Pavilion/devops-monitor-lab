@@ -12,9 +12,12 @@ services:
     networks:
       - jm-network
     restart: always
+    volumes:
+      - ./logs:/app/logs #映射：把当前目录下的 logs 文件夹映射到容器内的 /app/logs 文件夹
+      - ./bot.py:/app/bot.py # <--- 新增：挂载代码文件，实现热更新
     # --- 修正点：healthcheck 必须缩进在服务名称下方 ---
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:10000/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:10000/" ]
       interval: 30s
       timeout: 10s
       retries: 3

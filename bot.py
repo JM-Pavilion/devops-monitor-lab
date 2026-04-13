@@ -20,12 +20,24 @@ TARGETS = {
     "Bing-Search": "https://www.bing.com",
 }
 
-# --- 状态存储 ---
-service_status_cache = {}
-last_known_status = {}
+# --- 1.确保日志目录存在 ---
+LOG_DIR = "/app/logs"
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
-app = Flask(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+# --- 2.配置日志格式 ---
+log_format = '%(asctime)s - %(message)s'
+log_file = os.path.join(LOG_DIR, 'monitor.log')
+
+# --- 3.同时输出到控制台和文件 ---
+logging.basicConfig(level=logging.INFO, format=log_format, handlers=[
+    logging.FileHandler(log_file),
+    logging.StreamHandler()
+])
+
+logging.info("🚀 监控服务已启动，日志记录开始...")
+
+
 
 # --- 告警函数 ---
 def send_feishu_alert(service_name, status_desc):
