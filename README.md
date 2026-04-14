@@ -362,8 +362,29 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 * **Service Observability(可观测性)**: Integrated custom `healthcheck` probes. Diagnosed and resolved a port mismatch issue (80 vs 10000) using `docker inspect`.(实现了基于 `curl` 的健康检查。解决了因内部端口不匹配（80 vs 10000）导致的 `unhealthy` 状态，掌握了 `docker inspect` 诊断方法。)
 * **Config Decoupling(配置解耦)**: Utilized `.env` files for environment variable injection, ensuring the separation of code and configuration (12-Factor App methodology).(利用 `.env` 文件动态注入环境变量（如监控频率、Webhook），实现了“镜像一次构建，多环境动态配置”。)
 
+## 📅 Milestone: IaC & Local Cloud Simulation (2026-04-14)
 
+### 🏗️ 技术栈 (Technology Stack)
+- **Infrastructure(基础设施):** Terraform (v1.x)
+- **Cloud Provider (Mock)/(云提供商(模拟)):** LocalStack (v3.4.0) - AWS Simulation
+- **Containerization(容器化):** Docker & Docker Compose
+- **Target Region(目标区域):** `ap-southeast-1` (Singapore)
 
+### 🚀 核心进展 (Key Progress)
+- **Local Simulated Cloud Environments(本地模拟云环境)：** Successful integration of LocalStack in Docker Compose enables local zero-cost simulation of AWS VPC and EC2 environments.(在 Docker Compose 中成功集成 LocalStack，实现了本地零成本模拟 AWS VPC 和 EC2 环境。)
+- **Infrastructure as code(基础设施即代码)：** Writing' main.tf' implements a complete network architecture, including(编写 `main.tf` 实现了完整的网络架构，包括):
+  - 1 x VPC (10.0.0.0/16)
+  - 1 Public Subnet (公网子网)
+  - 1 IGW (互联网网关) & Route Table (路由表)
+  - 1 Security Group (安全组) - Open SSH/HTTP port
+  - 1 EC2 instance - Pass `user_data` Enable automatic running of the `jm-monitor` container on boot.(EC2 实例 - 通过 `user_data` 实现开机自动运行 `jm-monitor` 容器。)
+- **Terraform(工作流)：** A standardized IaC life process that runs through `init` - > `plan` - > `apply` - > `destroy` in its entirety.(完整跑通 `init` -> `plan` -> `apply` -> `destroy` 的标准化 IaC 生命流程。)
+
+### 🛠️ 常用命令 (Cheat Sheet)
+- **Initialization(初始化)：** `terraform init` (配置了国内镜像加速)
+- **Preview(预览)：** `terraform plan`
+- **perform deployment(执行部署)：** `terraform apply -auto-approve`
+- **One-button removal(一键拆除)：** `terraform destroy -auto-approve`
 
 
 

@@ -17,7 +17,7 @@ services:
       - ./bot.py:/app/bot.py # <--- 新增：挂载代码文件，实现热更新
     # --- 修正点：healthcheck 必须缩进在服务名称下方 ---
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:10000/" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -27,6 +27,23 @@ services:
   web-target:
     image: nginx:alpine
     container_name: jm-web-target
+    networks:
+      - jm-network
+
+  # --- 3. 新增：本地 AWS 模拟云 (LocalStack) ---
+  localstack:
+    image: localstack/localstack:3.4.0
+    container_name: jm-localstack
+    ports:
+      - "127.0.0.1:4566:4566" # 这里的 127.0.0.1 能规避你刚才遇到的 IPv6 报错
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=ec2,vpc,s3,iam # 开启你 main.tf 涉及的服务
+      - DEBUG=1
+      # 2.告诉它别去管 Docker 网络的复杂隔离，简化运行环境
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - jm-network
 

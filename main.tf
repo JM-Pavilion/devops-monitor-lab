@@ -110,13 +110,11 @@ resource "aws_security_group" "jm_web_sg" {
   }
 }
 
-
 # --- 创建你的第一台 EC2 虚拟机 ---
 # --- 1. 动态获取镜像 (这是 AWS SAA 考试必考知识点) ---
 data "aws_ami" "latest_amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
-
   filter {
     name   = "name"
     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
@@ -129,7 +127,7 @@ resource "aws_instance" "jm_web_server" {
   ami           = data.aws_ami.latest_amazon_linux.id
   
   # 实例类型 (t2.micro 是免费套餐中最常用的)
-  instance_type = "t2.micro"
+  instance_type = "t3.medium"
 
   # 关键：把电脑放进我们刚才建好的房间里
   subnet_id     = aws_subnet.jm_public_subnet.id
@@ -142,7 +140,6 @@ resource "aws_instance" "jm_web_server" {
 
   # 只要说明书改了，就直接给我换台新电脑
   user_data_replace_on_change = true
-
 
   # --- 嚼碎点：User Data (云服务器的启动脚本) ---
   # 这段脚本会在服务器第一次开机时自动执行
@@ -160,7 +157,6 @@ user_data = <<-EOF
             # 我们把容器的 10000 端口映射到服务器的 80 端口（这样访问时就不用输端口号了）
             sudo docker run -d --restart always -p 80:10000 jminng/jm-monitor:latest
             EOF
-
 
   tags = {
     Name = "jm-monitor-host"
