@@ -10,7 +10,7 @@ terraform {
 
 # --- 配置 AWS 区域 (LocalStack 适配版) ---
 provider "aws" {
-  region                      = "ap-southeast-1"
+  region                      = var.aws_region # <--- 换成变量
   
   # 1. 注入虚拟钥匙（LocalStack 不检查钥匙真假，但 Terraform 必须得拿一把在手里）
   access_key                  = "test"
@@ -20,10 +20,15 @@ provider "aws" {
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
+  s3_use_path_style           = true
 
   # 3. 最关键的一步：把 EC2 服务的终点站指向你的 LocalStack (4566 端口)
   endpoints {
-    ec2 = "http://localhost:4566"
+    ec2 = "http://127.0.0.1:4566"
+    elb = "http://127.0.0.1:4566"
+    elbv2 = "http://127.0.0.1:4566" #负责 Target Group 和新版 LB
+    s3 = "http://127.0.0.1:4566"
+    iam = "http://127.0.0.1:4566" # 这里不需要vpc，因为它已经包含在ec2里面了
   }
 }
 
@@ -127,7 +132,9 @@ resource "aws_instance" "jm_web_server" {
   ami           = data.aws_ami.latest_amazon_linux.id
   
   # 实例类型 (t2.micro 是免费套餐中最常用的)
-  instance_type = "t3.medium"
+  instance_type = var.instance_type
+
+
 
   # 关键：把电脑放进我们刚才建好的房间里
   subnet_id     = aws_subnet.jm_public_subnet.id
@@ -159,10 +166,21 @@ user_data = <<-EOF
             EOF
 
   tags = {
-    Name = "jm-monitor-host"
+    Name = "${var.project_name}-host"
   }
+
 }
 
+# --- 第三阶段：负载均衡配置 (SAA 核心考点) ---
+
+
+
+
+# --- 3. 输出部分 (必须独立放在外面) ---
+output "ec2_public_ip" {
+  value       = aws_instance.jm_web_server.public_ip
+  description = "The public IP of the monitor server"
+}
 
 
 

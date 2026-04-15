@@ -386,5 +386,54 @@ The Terraform configuration includes(Terraform 配置包含以下内容):
 - **perform deployment(执行部署)：** `terraform apply -auto-approve`
 - **One-button removal(一键拆除)：** `terraform destroy -auto-approve`
 
+## 📅 Milestone: Variables & Resilient Engineering  (2026-04-15 )
 
+### 📄 实验概述 (Overview)
+Today's focus was on transforming static Terraform manifests into a **parameter-driven dynamic architecture**, while practicing architectural rollback and troubleshooting when facing local simulation (LocalStack) limitations.(今天的工作重点是将静态的 Terraform 配置文件转换为**参数化驱动的动态架构**，并练习了在遭遇本地模拟环境（LocalStack）限制时的架构回滚与故障排除。)
 
+---
+
+### 🚀 核心进展 (Key Progress)
+
+#### 1. 基础设施变量化 (Infrastructure Parameterization)
+- **解耦配置与逻辑 (Decoupling):** created' variables.tf' to extract area, model and item names as variables.(创建了 `variables.tf`，将区域、机型和项目名称提取为变量。)
+- **动态注入 (Dynamic Injection):** Enables the ability to dynamically adjust infrastructure specifications with command-line arguments (' -var' ) without modifying source code.(实现了在不修改源代码的情况下，通过命令行参数 (`-var`) 动态调整基础设施规格的能力。)
+- **插值应用 (Interpolation):** Use `${var.project_name}` implements automated naming of tags.(使用 `${var.project_name}` 实现了标签 (Tags) 的自动化命名。)
+
+#### 2. 架构回滚与清理 (Rollback & Cleanup)
+- **识别限制 (Identifying Constraints):** LocalStack Free Edition found not to support' ELBv2' ( Target Groups ), causing deployment disruption.(发现 LocalStack 免费版不支持 `ELBv2` (Target Groups)，导致部署中断。)
+- **故障排除 (Troubleshooting):** Successfully resolved' Unhandled block type' and nested function domain errors.(成功解决 `Unsupported block type` 和嵌套作用域错误。)
+- **恢复稳定 (Restoring Stability):** A surgical code cleanup was performed to restore the environment to a Last Known Good State.(执行了手术式代码清理，将环境恢复至“已知稳定状态” (Last Known Good State)。)
+
+---
+
+### 🛠️ 技术细节 (Technical Details)
+
+| 特性 (Feature) | 之前 (Before) | 现在 (After) |
+| :--- | :--- | :--- |
+| **机型配置 (Instance Type)** | Hard `t3.medium` | Variable `var.instance_type` |
+| **命名规范 (Naming)** | manually specify `jm-monitor-host` | dynamic interpolation `${var.project_name}-host` |
+| **部署灵活性 (Flexibility)** | Fixed configuration | CLI Overrides (支持命令行覆盖) |
+
+---
+
+### 🧠 学习心得 (Lessons Learned)
+- **不要死磕环境限制 (Mock vs Real):** Understand the boundaries between local emulators and real cloud environments.  When the environment does not support advanced functions ( such as ALB ), the stability of core computing ( EC2 ) should be given priority.(明白本地模拟器与真实云环境的边界。当环境不支持高级功能（如 ALB）时，应优先保证核心计算 (EC2) 的稳定。)
+- **作用域敏感性 (Scope Awareness):** Understand that' output' must be a top-level block and cannot be nested inside' resource'.(理解了 `output` 必须是顶级块，不能嵌套在 `resource` 内部。)
+- **无损重构 (Lossless Refactoring):** Verifies the refactoring principle of " logic becomes beautiful, state remains unchanged."(验证了“逻辑变美，状态不变”的重构原则。)
+
+---
+
+### 💻 常用命令 (Daily Commands)
+```bash
+# 使用自定义变量预览
+terraform plan -var="instance_type=t2.micro"
+
+# 执行变量化后的部署
+terraform apply -auto-approve
+
+.
+├── main.tf           # 核心资源逻辑 (Core Logic)
+├── variables.tf      # 变量定义 (Input Variables)
+└── terraform.tfstate # 状态追踪 (State Tracking)
+```
