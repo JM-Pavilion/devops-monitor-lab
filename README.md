@@ -437,3 +437,65 @@ terraform apply -auto-approve
 ├── variables.tf      # 变量定义 (Input Variables)
 └── terraform.tfstate # 状态追踪 (State Tracking)
 ```
+
+## 📅 Milestone: Data Sources & Multi-Environment Support (2026-04-16)
+
+### 📄 实验概述 (Overview)
+Today's milestone marks a leap from "hardcoded architecture" to a "parameterized multi-environment architecture." I implemented dynamic Data Sources for automated AMI management and decoupled Dev/Prod configurations using `.tfvars` files.(今天实现了从“硬编码架构”向“参数化多环境架构”的飞跃。引入了动态数据源（Data Sources）来自动化镜像管理，并利用 `.tfvars` 文件实现了开发（Dev）与生产（Prod）环境的完全解耦。)
+
+---
+
+### 🚀 核心进展 (Key Progress)
+
+#### 1. 动态镜像生命周期管理 (Dynamic AMI Management)
+- **数据源驱动 (Data-Driven):** use `data "aws_ami"` In conjunction with Filters, allows Terraform to automatically find the latest Amazon Linux 2023 image instead of manually specifying an ID.(使用 `data "aws_ami"` 配合过滤器（Filters），让 Terraform 能够自动寻找最新的 Amazon Linux 2023 镜像，而非手动指定 ID。)
+- **不可变基础设施 (Immutable Infrastructure):** verified that when the mirror is updated, Terraform will guarantee system purity by " destroying old instance- > creating new instance".(验证了当镜像更新时，Terraform 会通过“销毁旧实例 -> 创建新实例”的方式保证系统纯净度。)
+
+#### 2. 多环境配置文件 (Multi-Environment Isolation)
+- **环境解耦 (Config Separation):**  `dev.tfvars` and `prod.tfvars` are created.(创建了 `dev.tfvars` 和 `prod.tfvars`。)
+- **一键切换 (Switching Logic):** enables quick switching between different specifications ( t2. micro / t3. medium ) and namespaces with only command line parameters without modifying the `main.tf` logic.(实现了无需修改 `main.tf` 逻辑，仅通过命令行参数即可在不同规格（t2.micro / t3.medium）和命名空间之间快速切换。)
+
+---
+
+### 🛠️ 技术细节 (Technical Details)
+
+| 特性 (Feature) | 开发环境 (Dev) | 生产环境 (Prod) |
+| :--- | :--- | :--- |
+| **文件引用** | `dev.tfvars` | `prod.tfvars` |
+| **实例类型 (Type)** | `t2.micro` | `t3.medium` |
+| **项目名称 (Project)** | `jm-dev-project` | `jm-prod-project` |
+| **部署策略** | Replace (销毁并重建) | Replace (销毁并重建) |
+
+---
+
+### 🧠 学习心得 (Lessons Learned)
+- **Understand Destroy Rebuild(-/+):** Have a good understanding of why changing an AMI or certain core attributes results in instance rebuild.  This is the standard practice to ensure environmental consistency in cloud native operation and maintenance.(深刻理解了为什么更改 AMI 或某些核心属性会导致实例重建。这是云原生运维中保证环境一致性的标准做法。)
+- **Separation of configuration and logic(配置与逻辑分离):** Learn that' main.tf' should be a general template, while specific environmental differences ( models, labels ) should be completely defined by external variable files.(学习到 `main.tf` 应该是通用的模板，而具体的环境差异（机型、标签）应该完全由外部变量文件定义。)
+
+---
+
+### 💻 常用命令 (Daily Commands)
+```bash
+# 预览并部署开发环境
+terraform plan -var-file="dev.tfvars"
+terraform apply -var-file="dev.tfvars" -auto-approve
+
+# 预览并部署生产环境
+terraform plan -var-file="prod.tfvars"
+terraform apply -var-file="prod.tfvars" -auto-approve
+
+.
+├── main.tf           # 通用逻辑模板 (Generic Logic)
+├── variables.tf      # 变量声明 (Variable Definitions)
+├── dev.tfvars        # 开发环境参数 (Dev Parameters)
+├── prod.tfvars       # 生产环境参数 (Prod Parameters)
+└── terraform.tfstate # 本地状态记录 (Local State)
+```
+
+
+
+
+
+
+
+

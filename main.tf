@@ -120,11 +120,18 @@ resource "aws_security_group" "jm_web_sg" {
 data "aws_ami" "latest_amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
+
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["al2023-ami-*-x86_64"] # 自动匹配 Amazon Linux 2023 最新版
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
+
 
 # --- 2. 修改你的 EC2 资源 ---
 resource "aws_instance" "jm_web_server" {
