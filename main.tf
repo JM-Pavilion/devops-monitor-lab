@@ -132,7 +132,6 @@ data "aws_ami" "latest_amazon_linux" {
   }
 }
 
-
 # --- 2. 修改你的 EC2 资源 ---
 resource "aws_instance" "jm_web_server" {
   # 镜像 ID (在 LocalStack 中这只是个占位符，但在真实 AWS 中这代表 Amazon Linux 2023)
@@ -140,8 +139,6 @@ resource "aws_instance" "jm_web_server" {
   
   # 实例类型 (t2.micro 是免费套餐中最常用的)
   instance_type = var.instance_type
-
-
 
   # 关键：把电脑放进我们刚才建好的房间里
   subnet_id     = aws_subnet.jm_public_subnet.id
@@ -169,16 +166,58 @@ user_data = <<-EOF
             
             # 3. 从云端超市拉取你的“预制菜”并运行
             # 我们把容器的 10000 端口映射到服务器的 80 端口（这样访问时就不用输端口号了）
-            sudo docker run -d --restart always -p 80:10000 jminng/jm-monitor:latest
+            # 修改这一行，增加一个 -v 映射
+            sudo docker run -d --restart always -p 80:10000 \
+              -v /mnt/jm_data:/data \
+              jminng/jm-monitor:latest
+
+
+            # 新增的 EBS 挂载逻辑 （必须在 EOF 结束前）
+            echo "Starting EBS volume configuration..."
+
+            # 等待硬盘连接完成
+            while [ ! -b /dev/sdh ]; do echo "Waiting for /dev/dsh..."
+              sleep 5
+            done
+
+            # 如果硬盘没有文件系统，则格式化它
+            if [ -z "$(lsblk -f /dev/sdh | grep ext4)" ]; then
+              mkfs -t ext4 /dev/sdh
+            fi
+
+            # 创建挂载目录并挂载
+            mkdir -p /mnt/jm_data
+            mount /dev/sdh /mnt/jm_data
+
+            # 确保开机自动挂载
+            echo "/dev/sdh /mnt/jm_data ext4 defaults,nofail 0 2" >> /etc/fstab
+
+            echo "EBS Volume mounted successfully at /mnt/jm_data"
+
             EOF
+
+# ... 原有的 docker 安装逻辑 ...
 
   tags = {
     Name = "${var.project_name}-host"
   }
-
 }
 
-# --- 第三阶段：负载均衡配置 (SAA 核心考点) ---
+# 1. 创建一个 10GB 的独立云硬盘
+resource "aws_ebs_volume" "jm_data_vol" {
+  availability_zone = "ap-southeast-1a" # 必须和 EC2 在同一个区
+  size              = 10
+  tags = {
+    Name = "${var.project_name}-data-disk"
+  }
+}
+
+# 2. 把硬盘“插”到 EC2 实例上
+resource "aws_volume_attachment" "jm_ebs_att" {
+  device_name = "/dev/sdh"
+  volume_id   = aws_ebs_volume.jm_data_vol.id
+  instance_id = aws_instance.jm_web_server.id
+}
 
 
 

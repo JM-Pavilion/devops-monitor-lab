@@ -494,6 +494,55 @@ terraform apply -var-file="prod.tfvars" -auto-approve
 
 
 
+## 📅 Milestone: Data Persistence & EBS Management (2026-04-17)
+
+### 📄 实验概述 (Overview)
+Today, I implemented a persistent storage solution. By introducing AWS EBS volumes and automating the mounting process via User Data, I achieved a decoupled architecture where mission-critical data remains intact even if the EC2 instance is destroyed and recreated.(今天实现了基础设施的“持久化存储”方案。通过引入 AWS EBS (Elastic Block Store) 卷，并结合 User Data 自动化脚本，实现了即使 EC2 实例销毁重建，核心数据依然保持完好的“解耦”架构。)
+
+---
+
+### 🚀 核心进展 (Key Progress)
+
+#### 1. 外部存储解耦 (External Storage Decoupling)
+- **EBS 卷管理 (EBS Management):** Created a separate 10 GB' aws_ebs_volume ' resource, ensuring its lifecycle is independent of EC2.(独立创建了 10GB 的 `aws_ebs_volume` 资源，确保其生命周期独立于 EC2。)
+- **动态挂载 (Volume Attachment):** Use' aws_volume_attachment ' Enables physical association of the hard disk with the compute instance.(使用 `aws_volume_attachment` 实现了硬盘与计算实例的物理关联。)
+
+#### 2. 挂载自动化 (Mounting Automation)
+- **脚本集成 (User Data Logic):** Adds disk recognition, formatting ( mkfs ) and mount logic to the power-on script.(在开机脚本中加入了磁盘识别、格式化（mkfs）及挂载逻辑。)
+- **持久挂载 (fstab):** Ensure that the data volume can be automatically remounted after the server is restarted by configuring' /etc/fstab'.(通过配置 `/etc/fstab` 确保服务器重启后数据卷能自动重新挂载。)
+
+---
+
+### 🛠️ 技术细节 (Technical Details)
+
+| 特性 (Feature) | 策略 (Strategy) | 目的 (Purpose) |
+| :--- | :--- | :--- |
+| **磁盘设备 (Device)** | `/dev/sdh` | Specify Hard Disk Connection Slots(指定硬盘连接槽位) |
+| **文件系统 (FS)** | `ext4` | Formatting Raw, Raw Disks(格式化未加工的原始磁盘) |
+| **挂载点 (Mount Point)**| `/mnt/jm_data` | Creating an Access Portal in Linux(在 Linux 中创建访问入口) |
+| **状态触发 (Trigger)** | `user_data` Change | Verify Unplugg- > Rebuild- > Plug Back in logic(验证“拔下 -> 重建 -> 重新插回”逻辑) |
+
+---
+
+### 🧠 学习心得 (Lessons Learned)
+- **无状态 vs 有状态 (Stateless vs Stateful):** Understands why the compute layer should be " disposable" and the storage layer must be " persistent."(理解了为什么计算层应该是“可丢弃的”，而存储层必须是“持久的”。)
+- **Heredoc 语法陷阱:** Deeply aware of' user_data 'Scripts must be strictly contained within the' EOF' block or Terraform will not recognize them.(深刻认识到 `user_data` 脚本必须严格包含在 `EOF` 块内，否则 Terraform 无法识别。)
+- **自动化的闭环:** Realize that in the cloud, " plugging in the hard drive" is only a physical action, and " formatting and mounting" within the system is the last step to making the hard drive available.(意识到在云端，“插上硬盘”只是物理动作，系统内的“格式化与挂载”才是让硬盘可用的最后一步。)
+
+---
+
+### (My Summary)
+> "I have successfully implemented an automated EBS mounting strategy. This decoupling of storage and compute ensures high availability and data durability. I also handled the cloud-init automation to ensure the filesystem is correctly initialized without manual intervention."
+
+---
+
+### 📂 文件结构更新 (Updated File Structure)
+```text
+.
+├── main.tf           # 增加 EBS 与挂载逻辑 (Added EBS & Attachment)
+├── dev.tfvars        # 开发参数 (Dev Params)
+└── prod.tfvars       # 生产参数 (Prod Params)
+```
 
 
 
