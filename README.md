@@ -545,6 +545,51 @@ Today, I implemented a persistent storage solution. By introducing AWS EBS volum
 ```
 
 
+## 📅 Milestone: S3 Integration & Least Privilege Principle (2026-04-19)
+
+### 📄 实验概述 (Overview)
+Today, I implemented the "Cloud Asset Warehouse." I introduced an AWS S3 bucket for unstructured data and focused on the IAM (Identity and Access Management) framework. By using Roles instead of static Keys, I enabled secure EC2-to-S3 access, adhering to modern security standards.(今天实现了基础设施的“云端资产仓库”建设。引入了 AWS S3 存储桶用于存放非结构化数据，并重点攻克了 IAM (Identity and Access Management) 体系，通过角色（Role）而非密钥（Keys）的方式，实现了 EC2 对 S3 的安全访问。)
+
+---
+
+### 🚀 核心进展 (Key Progress)
+
+#### 1. 对象存储部署 (Object Storage Deployment)
+- **S3 存储桶 (S3 Bucket):** The only S3 bucket in the world has been created, and Versioning is enabled to ensure data traceability and anti-deletion protection.(创建了全球唯一的 S3 Bucket，并开启了版本控制（Versioning），确保数据的可追溯性和防误删保护。)
+- **解耦存储 (Decoupled Assets):** Provides an infinitely scalable base for future storage of static resources, logs, and user-uploaded files.(为未来存放静态资源、日志和用户上传文件打下了无限扩展的基础。)
+
+#### 2. IAM 权限架构 (IAM Security Architecture)
+- **身份委派 (Identity Delegation):** Created `aws_iam_role` and `aws_iam_instance_profile`, realizing the security mode of " issue badge to server".(创建了 `aws_iam_role` 和 `aws_iam_instance_profile`，实现了“给服务器发工牌”的安全模式。)
+- **最小特权原则 (Least Privilege):** The `AmazonS3ReadOnlyAccess` policy is bound, and the server is precisely controlled to have only read-only permissions to prevent abuse of permissions.(绑定了 `AmazonS3ReadOnlyAccess` 策略，精确控制服务器仅具备只读权限，防止权限滥用。)
+
+---
+
+### 🛠️ 技术细节 (Technical Details)
+
+| 特性 (Feature) | 资源/策略 (Resource/Policy) | 目的 (Purpose) |
+| :--- | :--- | :--- |
+| **存储桶 (Bucket)** | `jm-lab-assets-20260419` | holds unlimited amount of unstructured data(存放无限容量的非结构化数据) |
+| **版本控制 (Versioning)**| `Enabled` | Provides data " regret medicine" to prevent accidental overwriting(提供数据“后悔药”，防止意外覆盖) |
+| **身份桥接 (Profile)** | `iam_instance_profile` | Physically bind security roles to EC2 instances(将安全角色物理绑定到 EC2 实例) |
+| **授权 (Authorization)** | `ReadOnlyAccess` | nly allows data to be viewed, no deletion / modification(仅允许查看数据，禁止删除/修改) |
+
+---
+
+### 🧠 学习心得 (Lessons Learned)
+- **安全是第一优先级 (Security is Job Zero):** Deeply understand why Access Keys cannot be written to death in code and how IAM Role protects cloud security through temporary credentials.(深刻理解了为什么不能在代码中写死 Access Keys，以及 IAM Role 如何通过临时凭证保护云端安全。)
+- **解耦逻辑的深度应用(Deep application of decoupling logic):** Recognize that permissions ( Policy ) and identity ( Role ) can be maintained independently, and " hot update" of permissions can be realized without restarting the server.(认识到权限（Policy）和身份（Role）是可以独立维护的，无需重启服务器即可实现权限的“热更新”。)
+- **语法一致性(Syntax consistency):** Reconfirmed the strict formatting of resource block definitions in Terraform, especially the requirement for braces to peer with resource names.(再次确认了 Terraform 中资源块定义的严格格式，尤其是大括号与资源名称的同行要求。)
+
+
+---
+
+### 📂 文件结构更新 (Updated File Structure)
+```text
+.
+├── main.tf           # 集成了 S3, IAM Role, Policy 绑定逻辑
+├── dev.tfvars        # 开发环境参数
+└── prod.tfvars       # 生产环境参数
+```
 
 
 

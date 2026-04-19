@@ -152,6 +152,9 @@ resource "aws_instance" "jm_web_server" {
   # 只要说明书改了，就直接给我换台新电脑
   user_data_replace_on_change = true
 
+  # 把“工牌”和“服务器”关联起来
+  iam_instance_profile = aws_iam_instance_profile.jm_ec2_profile.name
+
   # --- 嚼碎点：User Data (云服务器的启动脚本) ---
   # 这段脚本会在服务器第一次开机时自动执行
 user_data = <<-EOF
@@ -219,15 +222,60 @@ resource "aws_volume_attachment" "jm_ebs_att" {
   instance_id = aws_instance.jm_web_server.id
 }
 
-
-
-
 # --- 3. 输出部分 (必须独立放在外面) ---
 output "ec2_public_ip" {
   value       = aws_instance.jm_web_server.public_ip
   description = "The public IP of the monitor server"
 }
 
+# 1. 创建一个唯一的 S3 存储桶
+resource "aws_s3_bucket" "jm_assets_bucket" {
+  bucket = "jm-lab-assets-20260419" # 注意：S3 的名字必须是全球唯一的
+
+   tags = {
+     Name        = "${var.project_name}-assets"
+     Environment = "Dev"
+   }
+  }
+
+# 2. 开启版本控制（防止你手抖删错了，还能找回来）
+resource "aws_s3_bucket_versioning" "jm_assets_versioning" {
+  bucket = aws_s3_bucket.jm_assets_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+
+# 创建一个角色，允许 EC2 替你干活
+resource "aws_iam_role" "ec2_s3_access_role" {
+  name = "jm_ec2_s3_access_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# 给“工牌”贴上“权限说明书”（Attachment）
+resource "aws_iam_role_policy_attachment" "s3_readonly" {
+  role = aws_iam_role.ec2_s3_access_role.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
+# 把“工牌”别在 EC2 的胸口上
+resource "aws_iam_instance_profile" "jm_ec2_profile" {
+  name = "jm_ec2_profile"
+  role = aws_iam_role.ec2_s3_access_role.name
+}
 
 
 
