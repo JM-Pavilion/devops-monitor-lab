@@ -10,11 +10,11 @@ terraform {
 
 # --- 配置 AWS 区域 (LocalStack 适配版) ---
 provider "aws" {
-  region                      = var.aws_region # <--- 换成变量
-  
+  region = var.aws_region # <--- 换成变量
+
   # 1. 注入虚拟钥匙（LocalStack 不检查钥匙真假，但 Terraform 必须得拿一把在手里）
-  access_key                  = "test"
-  secret_key                  = "test"
+  access_key = "test"
+  secret_key = "test"
 
   # 2. 告诉 Terraform 别去联网查账号 ID 或元数据，直接连本地
   skip_credentials_validation = true
@@ -24,18 +24,18 @@ provider "aws" {
 
   # 3. 最关键的一步：把 EC2 服务的终点站指向你的 LocalStack (4566 端口)
   endpoints {
-    ec2 = "http://127.0.0.1:4566"
-    elb = "http://127.0.0.1:4566"
+    ec2   = "http://127.0.0.1:4566"
+    elb   = "http://127.0.0.1:4566"
     elbv2 = "http://127.0.0.1:4566" #负责 Target Group 和新版 LB
-    s3 = "http://127.0.0.1:4566"
-    iam = "http://127.0.0.1:4566" # 这里不需要vpc，因为它已经包含在ec2里面了
+    s3    = "http://127.0.0.1:4566"
+    iam   = "http://127.0.0.1:4566" # 这里不需要vpc，因为它已经包含在ec2里面了
   }
 }
 
 # --- 划地皮：创建一个最基础的 VPC ---
 resource "aws_vpc" "jm_main_vpc" {
   cidr_block = "10.0.0.0/16"
-  
+
   tags = {
     Name = "jm-local-vpc"
   }
@@ -44,11 +44,11 @@ resource "aws_vpc" "jm_main_vpc" {
 # --- 在 VPC 里面划一块子网 (Subnet) ---
 resource "aws_subnet" "jm_public_subnet" {
   # 关键：告诉 Terraform 这个子网属于刚才那个 VPC
-  vpc_id            = aws_vpc.jm_main_vpc.id
-  
+  vpc_id = aws_vpc.jm_main_vpc.id
+
   # 子网的网段必须包含在大网段里面
-  cidr_block        = "10.0.1.0/24"
-  
+  cidr_block = "10.0.1.0/24"
+
   # 设置可用区（LocalStack 模拟新加坡的 A 区）
   availability_zone = "ap-southeast-1a"
 
@@ -60,7 +60,7 @@ resource "aws_subnet" "jm_public_subnet" {
 # 1. 互联网网关 (让 VPC 能看到外面的世界)
 resource "aws_internet_gateway" "jm_igw" {
   vpc_id = aws_vpc.jm_main_vpc.id
-  tags = { Name = "jm-igw" }
+  tags   = { Name = "jm-igw" }
 }
 
 # 2. 路由表 (指路牌)
@@ -135,13 +135,13 @@ data "aws_ami" "latest_amazon_linux" {
 # --- 2. 修改你的 EC2 资源 ---
 resource "aws_instance" "jm_web_server" {
   # 镜像 ID (在 LocalStack 中这只是个占位符，但在真实 AWS 中这代表 Amazon Linux 2023)
-  ami           = data.aws_ami.latest_amazon_linux.id
-  
+  ami = data.aws_ami.latest_amazon_linux.id
+
   # 实例类型 (t2.micro 是免费套餐中最常用的)
   instance_type = var.instance_type
 
   # 关键：把电脑放进我们刚才建好的房间里
-  subnet_id     = aws_subnet.jm_public_subnet.id
+  subnet_id = aws_subnet.jm_public_subnet.id
 
   # 关键：给电脑配上刚才那个保安
   vpc_security_group_ids = [aws_security_group.jm_web_sg.id]
@@ -157,7 +157,7 @@ resource "aws_instance" "jm_web_server" {
 
   # --- 嚼碎点：User Data (云服务器的启动脚本) ---
   # 这段脚本会在服务器第一次开机时自动执行
-user_data = <<-EOF
+  user_data = <<-EOF
             #!/bin/bash
             # 1. 更新系统并安装 Docker
             sudo yum update -y
@@ -199,7 +199,7 @@ user_data = <<-EOF
 
             EOF
 
-# ... 原有的 docker 安装逻辑 ...
+  # ... 原有的 docker 安装逻辑 ...
 
   tags = {
     Name = "${var.project_name}-host"
@@ -232,11 +232,11 @@ output "ec2_public_ip" {
 resource "aws_s3_bucket" "jm_assets_bucket" {
   bucket = "jm-lab-assets-20260419" # 注意：S3 的名字必须是全球唯一的
 
-   tags = {
-     Name        = "${var.project_name}-assets"
-     Environment = "Dev"
-   }
+  tags = {
+    Name        = "${var.project_name}-assets"
+    Environment = "Dev"
   }
+}
 
 # 2. 开启版本控制（防止你手抖删错了，还能找回来）
 resource "aws_s3_bucket_versioning" "jm_assets_versioning" {
@@ -267,8 +267,8 @@ resource "aws_iam_role" "ec2_s3_access_role" {
 
 # 给“工牌”贴上“权限说明书”（Attachment）
 resource "aws_iam_role_policy_attachment" "s3_readonly" {
-  role = aws_iam_role.ec2_s3_access_role.name
-    policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
 # 把“工牌”别在 EC2 的胸口上
