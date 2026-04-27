@@ -592,4 +592,48 @@ Today, I implemented the "Cloud Asset Warehouse." I introduced an AWS S3 bucket 
 ```
 
 
+# 🚀 Alibaba Cloud Automated Deployment Lab(阿里云自动化部署实验)
+
+## 📝 Overview | 概述
+This project demonstrates a complete GitOps workflow, automating the deployment of a monitoring application to Alibaba Cloud ECS using Terraform and GitHub Actions.(本项目展示了一个完整的 GitOps 工作流，通过 Terraform 和 GitHub Actions 实现了监控应用在阿里云 ECS 上的自动化部署。)
+
+## 🛠️ Tech Stack | 技术栈
+* **Infrastructure as Code (IaC)**: Terraform
+* **CI/CD**: GitHub Actions
+* **Cloud Provider**: Alibaba Cloud (Aliyun)
+* **Containerization**: Docker
+* **Local Dev**: Apple M1 (ARM64)
+
+## 🧠 Key Learnings | 核心学习点
+
+### 1. Cross-Architecture Deployment | 跨架构部署
+* **Challenge**: Developing on an ARM64 machine (Apple M1) while deploying to x86_64 cloud servers.
+* **Solution**: Used Terraform data sources with explicit architecture filters (`x86_64`) to ensure image compatibility.
+* **挑战**：在 ARM64 机器（Apple M1）上开发，同时部署到 x86_64 云服务器。
+* **解决**：使用带有明确架构筛选（`x86_64`）的 Terraform 数据源，确保系统镜像兼容性。
+
+### 2. Secure Credential Management | 安全凭证管理
+* **Practice**: Leveraged GitHub Secrets and environment variables (`ALICLOUD_ACCESS_KEY_ID`, `ALICLOUD_ACCESS_KEY_SECRET`) to avoid hardcoding sensitive keys in code.
+* **实践**：利用 GitHub Secrets 和环境变量，避免在代码中硬编码敏感密钥。
+
+### 3. Regional Resource Availability | 地域资源可用性
+* **Insight**: Cloud resources and image IDs vary by region. Migrated from `cn-guangzhou` to `cn-hangzhou` to resolve resource stock issues.
+* **洞察**：云资源和镜像 ID 随地域变化。从 `cn-guangzhou` 迁移至 `cn-hangzhou` 以解决资源库存问题。
+
+### 4. Automated Infrastructure | 自动化基础设施
+* **Workflow**: `Terraform Init` -> `Terraform Plan` -> `Terraform Apply` (Auto-approved via CI).
+* **工作流**：从初始化、规划到自动审批执行的完整自动化流程。
+
+## 📖 How it Works | 运行原理
+1.  **Code Push**: Triggered by a push to the `main` branch.
+2.  **Environment Setup**: GitHub Actions sets up the Terraform environment and injects secrets.
+3.  **Dynamic Discovery**: Terraform searches for the latest Ubuntu x86 image in the target region.
+4.  **Provisioning**: Automatically creates VPC, VSwitch, Security Group, and ECS instances.
+5.  **Auto-Bootstrap**: User Data script installs Docker and runs the `jm-monitor` container upon boot.
+
+---
+
+### 📅 Next Steps | 下一步
+* [ ] Add a `terraform destroy` workflow to save costs. (添加销毁工作流以节省成本)
+* [ ] Implement persistent storage for monitoring data. (为监控数据实现持久化存储)
 
