@@ -1,14 +1,21 @@
-variable "aws_region" {
-  description = "AWS 部署的区域"
-  default     = "ap-southeast-1"
+variable "alicloud_access_key" {
+  description = "Alibaba Cloud Access Key ID"
+  type        = string
+  sensitive   = true # 标记为敏感，Terraform 在日志里会打码
 }
 
-variable "instance_type" {
-  description = "EC2 实例规格"
-  default     = "t3.medium"
+variable "alicloud_secret_key" {
+  description = "Alibaba Cloud Secret Access Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "region" {
+  description = "阿里云部署区域"
+  default     = "cn-guangzhou"
 }
 
 variable "project_name" {
   description = "项目名称前缀"
-  default     = "jm-lab"
+  default     = "jm-monitor-lab"
 }
