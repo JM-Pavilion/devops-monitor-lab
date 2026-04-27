@@ -70,7 +70,7 @@ resource "alicloud_instance" "jm_server" {
   vswitch_id                 = alicloud_vswitch.jm_vswitch.id
   instance_type              = "ecs.e-c1m1.large" # 经济型 e 系列，可以用你的 300 元券
   system_disk_category       = "cloud_essd"
-  image_id                   = data.alicloud_image.ubuntu.images[0].id # Ubuntu 系统
+  image_id                   = data.alicloud_images.ubuntu.images[0].id # Ubuntu 系统
   
   # 分配公网 IP
   internet_max_bandwidth_out = 5
@@ -91,3 +91,4 @@ resource "alicloud_instance" "jm_server" {
 output "ecs_public_ip" {
   value = alicloud_instance.jm_server.public_ip
 }
+
