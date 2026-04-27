@@ -1,4 +1,4 @@
-# --- 1. 定义阿里云提供者 ---
+# --- 1. 定义基础设施环境 ---
 terraform {
   required_providers {
     alicloud = {
@@ -8,9 +8,14 @@ terraform {
   }
 }
 
-provider "alicloud" {
-  # 这里的变量会自动从你 GitHub 的 Secrets 传进来
+# --- 2. 动态获取镜像 (注意是 images 复数) ---
+data "alicloud_images" "ubuntu" {
+  name_regex  = "^ubuntu_22_04"
+  owners      = "system"
+  most_recent = true
+}
 
+provider "alicloud" {
   region     = "cn-hangzhou" # 建议用杭州，国内最稳
 }
 
@@ -65,7 +70,7 @@ resource "alicloud_instance" "jm_server" {
   vswitch_id                 = alicloud_vswitch.jm_vswitch.id
   instance_type              = "ecs.e-c1m1.large" # 经济型 e 系列，可以用你的 300 元券
   system_disk_category       = "cloud_essd"
-  image_id                   = "ubuntu_22_04_x64_20G_alibase_20240108.vhd" # Ubuntu 系统
+  image_id                   = data.alicloud_image.ubuntu.images[0].id # Ubuntu 系统
   
   # 分配公网 IP
   internet_max_bandwidth_out = 5
