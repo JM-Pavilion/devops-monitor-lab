@@ -174,7 +174,6 @@ resource "aws_instance" "jm_web_server" {
               -v /mnt/jm_data:/data \
               jminng/jm-monitor:latest
 
-
             # 新增的 EBS 挂载逻辑 （必须在 EOF 结束前）
             echo "Starting EBS volume configuration..."
 
@@ -246,7 +245,6 @@ resource "aws_s3_bucket_versioning" "jm_assets_versioning" {
   }
 }
 
-
 # 创建一个角色，允许 EC2 替你干活
 resource "aws_iam_role" "ec2_s3_access_role" {
   name = "jm_ec2_s3_access_role"
@@ -276,8 +274,3 @@ resource "aws_iam_instance_profile" "jm_ec2_profile" {
   name = "jm_ec2_profile"
   role = aws_iam_role.ec2_s3_access_role.name
 }
-
-
-
-
-
