@@ -1,5 +1,3 @@
-
-
 variable "region" {
   description = "阿里云部署区域"
   default     = "cn-guangzhou"
