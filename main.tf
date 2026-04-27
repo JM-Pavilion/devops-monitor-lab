@@ -10,8 +10,7 @@ terraform {
 
 provider "alicloud" {
   # 这里的变量会自动从你 GitHub 的 Secrets 传进来
-  # access_key = var.alicloud_access_key
-  # secret_key = var.alicloud_secret_key
+
   region     = "cn-guangzhou" # 建议用杭州，国内最稳
 }
 
