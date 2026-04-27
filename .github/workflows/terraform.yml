@@ -19,21 +19,21 @@ jobs:
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
-          ALICLOUD_REGION: "cn-guangzhou"
+          ALICLOUD_REGION: "cn-hangzhou"
 
       - name: Terraform Plan
         run: terraform plan
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
-          ALICLOUD_REGION: "cn-guangzhou"
+          ALICLOUD_REGION: "cn-hangzhou"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
-          ALICLOUD_REGION: "cn-guangzhou"
+          ALICLOUD_REGION: "cn-hangzhou"
 
 
       # 这里不执行 apply，避免误操作破坏环境
