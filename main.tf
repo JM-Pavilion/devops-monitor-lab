@@ -10,8 +10,9 @@ terraform {
 
 # --- 2. 动态获取镜像 (注意是 images 复数) ---
 data "alicloud_images" "ubuntu" {
-  name_regex  = "^ubuntu_22_04"
+  name_regex  = "^ubuntu_22_04_x64" # 加上 _x64，确保是普通电脑架构
   owners      = "system"
+  architecture = "x86_64"           # 明确指定架构，这就是解决问题的关键！
   most_recent = true
 }
 
