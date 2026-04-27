@@ -24,7 +24,7 @@ resource "alicloud_vswitch" "jm_vswitch" {
   vswitch_name = "jm-monitor-switch"
   vpc_id       = alicloud_vpc.jm_vpc.id
   cidr_block   = "172.16.1.0/24"
-  zone_id      = "cn-hangzhou"
+  zone_id      = "cn-hangzhou-j"
 }
 
 # --- 3. 配置安全组 (防火墙) ---
@@ -60,7 +60,7 @@ resource "alicloud_security_group_rule" "allow_ssh" {
 # --- 4. 创建 ECS 服务器 ---
 resource "alicloud_instance" "jm_server" {
   instance_name              = "jm-monitor-host"
-  availability_zone          = "cn-hangzhou"
+  availability_zone          = "cn-hangzhou-j"
   security_groups            = [alicloud_security_group.jm_sg.id]
   vswitch_id                 = alicloud_vswitch.jm_vswitch.id
   instance_type              = "ecs.e-c1m1.large" # 经济型 e 系列，可以用你的 300 元券
