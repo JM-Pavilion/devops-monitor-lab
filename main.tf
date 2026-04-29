@@ -72,6 +72,7 @@ resource "alicloud_instance" "jm_server" {
   instance_type              = "ecs.e-c1m1.large" # 经济型 e 系列，可以用你的 300 元券
   system_disk_category       = "cloud_essd"
   image_id                   = data.alicloud_images.ubuntu.images[0].id # Ubuntu 系统
+  password = var.ecs_password
   
   # 分配公网 IP
   internet_max_bandwidth_out = 5
@@ -93,3 +94,31 @@ output "ecs_public_ip" {
   value = alicloud_instance.jm_server.public_ip
 }
 
+# --- 6. 云监控：CPU 告警规则 ---
+resource "alicloud_cms_alarm" "cpu_alarm" {
+  name               = "jm-server-cpu-high"
+  project            = "acs_ecs_dashboard" # 固定写法，表示监控 ECS
+  metric             = "CPUUtilization"     # 监控指标：CPU 使用率
+  
+  # 关联到你昨天创建的那台服务器
+  dimensions = {
+    instanceId = alicloud_instance.jm_server.id
+  }
+
+  period             = 60
+  contact_groups     = [] 
+
+  # 这里是关键：所有的阈值逻辑都要缩进到这个块里
+  escalations_critical {
+    statistics          = "Average"
+    comparison_operator = ">="    # 注意这里也改名了
+    threshold           = "50"
+    times               = 2       # 这里终于可以用回 times 了！
+  }
+}
+
+
+variable "ecs_password" {
+  type        = string
+  sensitive   = true # 标记为敏感，这样在日志里不会显示明文
+}

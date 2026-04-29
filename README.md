@@ -83,8 +83,9 @@ docker run -d -p 8888:80 jminng/jm-bandit-web:v2
 ### 🚀 One-Click Deployment (一键部署)
 To spin up my full environment, simply run:
 (只需一行命令即可启动我的完整环境：)
-```bash```
+```bash
 docker-compose up -d
+```
 
 ## 💾 Data Persistence & Bind Mounts (数据持久化实战)
 
@@ -637,3 +638,58 @@ This project demonstrates a complete GitOps workflow, automating the deployment 
 * [ ] Add a `terraform destroy` workflow to save costs. (添加销毁工作流以节省成本)
 * [ ] Implement persistent storage for monitoring data. (为监控数据实现持久化存储)
 
+---
+
+## 🚀 Phase 1: Infrastructure as Code (IaC) / 基础设施即代码
+
+### Steps / 操作步骤:
+1. **Terraform Provisioning(编排)**: Automated the creation of VPC, VSwitch, Security Group, and ECS instance.(自动化创建 VPC、交换机、安全组及 ECS 实例。)
+2. **Security Hardening(安全加固)**: Configured inbound rules to allow SSH (22) and HTTP (80) traffic.(配置入方向规则，开放 SSH (22) 与 HTTP (80) 端口。)
+3. **Cloud Monitoring(云监控集成)**: Integrated `alicloud_cms_alarm` to monitor CPU utilization.(通过 `alicloud_cms_alarm` 配置 CPU 使用率告警规则。)
+
+---
+
+## 📦 Phase 2: Image Management & Distribution / 镜像管理与分发
+
+### Challenges & Solutions / 挑战与方案:
+- **Issue(问题)**: Docker Hub connection timeouts due to cross-border network.(由于跨境网络原因，Docker Hub 镜像拉取频繁超时。)
+- **Solution(方案)**: Built a Private Registry on Alibaba Cloud Container Registry (ACR) for internal high-speed distribution.(在阿里云构建私有镜像仓库 (ACR)，实现内网高速分发。)
+- **Commands / 关键命令**:
+  ```bash
+  docker login --username=nick4099990906 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+  docker tag jm-monitor:latest <ACR_URL>/jm-monitor:v1.0
+  docker push <ACR_URL>/jm-monitor:v1.0
+  ```
+
+## 🚢 Phase 3: Containerized Deployment / 容器化部署
+
+### ​Troubleshooting / 疑难排查:
+
+- **Port Mapping(端口映射)**: The Flask app was listening on 10000 inside the container. Corrected Docker port forwarding from 80:80 to 80:10000.(发现 Flask 应用在容器内监听 10000 端口。将 Docker 映射从 80:80 修正为 80:10000。)
+
+### Deployment Command / 部署命令:
+  ```bash
+docker run -d --name jm-monitor --restart always -p 80:10000 <ACR_IMAGE_URL>
+  ```
+
+## 🔔 Phase 4: Stress Testing & Alarm Verification / 压力测试与告警验证
+
+### ​The "Bursting Instance" Trap / “突发性能实例”的陷阱:
+- **Observation(观察)**: CPU usage capped at 60% due to Alibaba Cloud's baseline performance credit system on burstable instances.(由于突发性能实例的基准限制，CPU 使用率在压测时卡在 60% 左右。)
+
+- **Action(行动)**: Lowered the alarm threshold in Terraform from 80% to 50% to verify the alerting pipeline.(将 Terraform 中的告警阈值从 80% 调低至 50% 以验证完整告警链路。)
+
+### Stress Command / 压测命令:
+  ```bash
+yes > /dev/null &  # Multi-threaded to saturate CPU cores
+  ```
+
+### Result / 最终结果:
+​Successfully triggered the CloudMonitor Alarm History, confirming the end-to-end monitoring flow is functional.(成功触发云监控报警历史，确认了端到端监控流程完全可用。)
+
+### ​🛠️ Tech Stack / 技术栈
+- ​Cloud: Alibaba Cloud (ECS, VPC, ACR, CMS)
+- ​IaC: Terraform
+- ​Containerization: Docker
+- Backend: Python (Flask)
+- ​OS: Ubuntu 22.04 LTS
