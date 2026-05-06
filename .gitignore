@@ -19,3 +19,5 @@ Thumbs.db
 
 # 忽略.env文件
 .env
+
+.terraform.lock.hcl
