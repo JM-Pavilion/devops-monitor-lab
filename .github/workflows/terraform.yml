@@ -7,6 +7,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # 设置超时时间，防止长时间运行
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,14 +19,14 @@ jobs:
         run: rm -f .terraform.lock.hcl
 
       - name: Terraform Init
-        run: terraform init -upgrade
+        run: terraform init -reconfigure-upgrade -input=false # 增加 -input=false 防止它在后台偷偷访问你问题导致卡死
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -lock=false
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
