@@ -28,15 +28,10 @@ jobs:
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
 
-      # --- 这一步是关键：把注释去掉，让它真正开始干活 ---
       - name: Terraform Apply
+        # 只有在 main 分支 push 时才真正执行修改
         run: terraform apply -auto-approve
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
-
-
-      # 这里不执行 apply，避免误操作破坏环境
-      # - name: Terraform Apply
-      #   run: terraform apply -auto-approve
