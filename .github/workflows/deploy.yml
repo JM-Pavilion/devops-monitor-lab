@@ -2,7 +2,7 @@ name: Docker Build and Push to ACR
 
 on:
   push:
-    branches: [ "main" ]  # 当 main 分支有代码推送时触发
+    branches: [ "main" ]
 
 jobs:
   build-and-push:
@@ -12,47 +12,29 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Log in to ACR
-      # 登录阿里云镜像仓库
       run: echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
 
     - name: Build and Push Docker Image
       run: |
-        # 构建并打标签，版本号我们用 GitHub 的 commit ID 保证唯一
         docker build -t crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} .
         docker tag crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-        
-        # 推送特定版本和 latest 版本
         docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }}
         docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
 
-deploy:
-  needs: build-and-push
-  runs-on: ubuntu-latest
-  steps:
-  - name: SSH Deploy to ECS
-    uses: appleboy/ssh-action@master
-    with:
-      host: ${{ secrets.ECS_HOST }}
-      username: root
-      password: ${{ secrets.ECS_PASSWORD }}
-      script: |
-        # 1.登录ACR
-        echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
-
-        # 2.停止并删除旧容器
-        docker stop jm-monitor || true
-        docker rm jm-monitor || true
-
-        # 3.拉取新镜像并运行新容器
-        docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-            
-        # 4.运行新容器，映射80端口
-        docker run -d --name jm-monitor --restart=always -p 80:10000 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-
-        # 5.清理旧镜像（可选）
-        docker image prune -f
-
-
-
-
-
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+    - name: SSH Deploy to ECS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.ECS_HOST }}
+        username: root
+        password: ${{ secrets.ECS_PASSWORD }}
+        script: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+          docker stop jm-monitor || true
+          docker rm jm-monitor || true
+          docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+          docker run -d --name jm-monitor --restart always -p 80:10000 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+          docker image prune -f
