@@ -1,0 +1,26 @@
+name: Docker Build and Push to ACR
+
+on:
+  push:
+    branches: [ "main" ]  # 当 main 分支有代码推送时触发
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to ACR
+      # 登录阿里云镜像仓库
+      run: echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+
+    - name: Build and Push Docker Image
+      run: |
+        # 构建并打标签，版本号我们用 GitHub 的 commit ID 保证唯一
+        docker build -t crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} .
+        docker tag crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+        
+        # 推送特定版本和 latest 版本
+        docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }}
+        docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
