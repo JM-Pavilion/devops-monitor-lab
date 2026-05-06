@@ -24,3 +24,35 @@ jobs:
         # 推送特定版本和 latest 版本
         docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }}
         docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+
+deploy:
+  needs: build-and-push
+  runs-on: ubuntu-latest
+  steps:
+  - name: SSH Deploy to ECS
+    uses: appleboy/ssh-action@master
+    with:
+      host: ${{ secrets.ECS_HOST }}
+      username: root
+      password: ${{ secrets.ECS_PASSWORD }}
+      script: |
+        # 1.登录ACR
+        echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+
+        # 2.停止并删除旧容器
+        docker stop jm-monitor || true
+        docker rm jm-monitor || true
+
+        # 3.拉取新镜像并运行新容器
+        docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+            
+        # 4.运行新容器，映射80端口
+        docker run -d --name jm-monitor --restart=always -p 80:10000 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+
+        # 5.清理旧镜像（可选）
+        docker image prune -f
+
+
+
+
+
