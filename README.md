@@ -593,7 +593,7 @@ Today, I implemented the "Cloud Asset Warehouse." I introduced an AWS S3 bucket 
 ```
 
 
-# 🚀 Alibaba Cloud Automated Deployment Lab(阿里云自动化部署实验)
+# 🚀 Alibaba Cloud Automated Deployment Lab / 阿里云自动化部署实验 (2026-04-28)
 
 ## 📝 Overview | 概述
 This project demonstrates a complete GitOps workflow, automating the deployment of a monitoring application to Alibaba Cloud ECS using Terraform and GitHub Actions.(本项目展示了一个完整的 GitOps 工作流，通过 Terraform 和 GitHub Actions 实现了监控应用在阿里云 ECS 上的自动化部署。)
@@ -640,7 +640,7 @@ This project demonstrates a complete GitOps workflow, automating the deployment 
 
 ---
 
-## 🚀 Phase 1: Infrastructure as Code (IaC) / 基础设施即代码
+## 🚀 Phase 1: Infrastructure as Code (IaC) / 基础设施即代码 (2026-04-30)
 
 ### Steps / 操作步骤:
 1. **Terraform Provisioning(编排)**: Automated the creation of VPC, VSwitch, Security Group, and ECS instance.(自动化创建 VPC、交换机、安全组及 ECS 实例。)
@@ -693,3 +693,46 @@ yes > /dev/null &  # Multi-threaded to saturate CPU cores
 - ​Containerization: Docker
 - Backend: Python (Flask)
 - ​OS: Ubuntu 22.04 LTS
+
+
+# 🚀 JM-Monitor: Automated CI/CD Lab / 从代码到云端的全流程实践(2026-05-6)
+​This project marks a significant milestone in transitioning from manual deployment to a fully automated DevOps pipeline. We successfully integrated GitHub Actions, Aliyun ACR, and Aliyun ECS to achieve "Push-to-Deploy" magic.(​本项目标志着从手动部署向全自动化 DevOps 流水线转型的里程碑。我们成功整合了 GitHub Actions、阿里云 ACR 和阿里云 ECS，实现了“代码推送即部署”的魔法。)
+
+## 🏗️ System Architecture | 系统架构
+1. **​Code (Local)**: Python (Flask/FastAPI) monitoring application.(基于 Python 的监控应用。)
+2. **​CI (GitHub Actions)**: Automatic Docker image building and tagging.(自动 Docker 镜像构建与打标签。)
+3. **​Registry (Aliyun ACR)**: Secure storage for versioned Docker images.(安全存储各版本的 Docker 镜像。)
+4. **​CD (SSH Deploy)**: Automated remote command execution to pull and run the latest container on ECS.(自动执行远程命令，在 ECS 上拉取并运行最新容器。)
+
+## 🛠️ Tech Stack | 技术栈
+* ​Language: Python
+* ​Containerization: Docker
+* ​CI/CD: GitHub Actions
+* Cloud Provider: Alibaba Cloud (ECS, ACR)
+* IaC: Terraform (Infrastructure as Code)
+
+## ​📝 Key Learning & Troubleshooting | 核心学习与避坑指南
+### 1. Docker & ACR Integration | Docker 与镜像仓库整合
+* Success: Mastered the docker login, build, tag, and push workflow.(掌握了 docker login、build、tag 和 push 的全流程。)
+* ​Tip: Used ${{ github.sha }} for unique versioning and the :latest tag for seamless updates.(使用 ${{ github.sha }} 保证版本唯一性，同时使用 :latest 标签实现无缝更新。)
+
+### ​2. GitHub Actions Syntax | GitHub Actions 语法细节
+* ​Lesson: YAML files are extremely sensitive to indentation. A single missing space can break the entire workflow.(​YAML 文件对 缩进 极其敏感。哪怕少一个空格都会导致整个工作流失效。)
+
+### 3. SSH Automated Deployment | SSH 自动化部署
+* ​Mechanism: Used appleboy/ssh-action to bridge GitHub and Aliyun ECS.(使用 appleboy/ssh-action 搭建 GitHub 与阿里云 ECS 的桥梁。)
+* Security: Leveraged GitHub Secrets to store sensitive info like ECS_PASSWORD and ACR_PASSWORD.(利用 GitHub Secrets 存储敏感信息，如服务器密码和镜像仓库密码。)
+
+### ​4. Terraform Cross-Platform Challenges | Terraform 跨平台挑战
+* ​Issue: Encountered .terraform.lock.hcl checksum mismatches between macOS (ARM64) and GitHub Runners (Linux AMD64).(遇到了 macOS (ARM64) 与 GitHub Runner (Linux AMD64) 之间的插件校验和不匹配问题。)
+* ​Resolution: Learned that in rapid development environments, removing the lock file or using -reconfigure can bypass environmental lock-ins.(了解到在快速开发阶段，通过移除锁文件或使用 -reconfigure 参数可以绕过环境锁死。)
+​
+## 🚀 How to Use | 如何使用
+1. **​Modify code** in app.py.
+2. **​Commit & Push**: git push origin main.
+3. **​Watch Magic**: Check GitHub Actions tab for the green checkmarks.
+4. **​Verify**: Visit http://118.178.110.157 to see the live updates.
+
+
+
+
