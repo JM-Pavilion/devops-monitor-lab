@@ -186,10 +186,11 @@ if __name__ == "__main__":
 
     # 如果是正常环境：启动后台线程 + 启动 Flask
     t = threading.Thread(target=monitoring_worker, daemon=True)
-    # 手动回滚测试
-    t.start(
+    t.start()
 
     port = int(os.environ.get("PORT", 10000))
-    print(f"🌐 Web 界面已启动，端口: {port}")
+    # 手动回滚测试
+    print("Web Server Started at port: {}".format(port))
+    # print(f"🌐 Web 界面已启动，端口: {port}")
     app.run(host="0.0.0.0", port=port)
 
