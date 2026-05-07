@@ -733,6 +733,67 @@ yes > /dev/null &  # Multi-threaded to saturate CPU cores
 3. **​Watch Magic**: Check GitHub Actions tab for the green checkmarks.
 4. **​Verify**: Visit http://118.178.110.157 to see the live updates.
 
+---
 
+# 🚀 JM-Monitor: CI/CD & Reliability Lab / 持续集成与高可用实践
 
+This repository documents the journey of building a professional CI/CD pipeline and mastering failure recovery techniques.(本仓库记录了构建专业 CI/CD 流水线及掌握故障恢复技术的实践过程。)
 
+---
+
+## 🏗️ Architecture | 系统架构
+
+1.  **Code**: Python (Bot & Monitoring logic).
+2.  **CI**: GitHub Actions builds and pushes multi-tagged Docker images (`latest` and `${{ github.sha }}`).
+3.  **Registry**: Aliyun ACR (Private Repository).
+4.  **CD**: Automated SSH deployment to Aliyun ECS.
+
+1.  **代码**: Python (机器人与监控逻辑)。
+2.  **CI**: GitHub Actions 构建并推送多标签 Docker 镜像 (`latest` 和 `${{ github.sha }}`).
+3.  **镜像仓库**: 阿里云 ACR (私有仓库)。
+4.  **CD**: 自动化 SSH 部署至阿里云 ECS。
+
+---
+
+## 🛠️ Key Experiments | 核心实验
+
+### 1. Fault Drill: Credentials Failure | 故障演练：凭证失效
+* **Scenario**: Changed `ACR_PASSWORD` in GitHub Secrets to an invalid value.
+* **Observation**: Pipeline failed at "Log in to ACR" step with `unauthorized` error.
+* **Lesson**: Learned to pinpoint credential issues via Action logs.
+* **场景**: 将 GitHub Secrets 中的 `ACR_PASSWORD` 改为错误值。
+* **现象**: 流水线在“登录 ACR”步骤报错 `unauthorized`。
+* **教训**: 学会了通过 Action 日志精准定位凭证问题。
+
+### 2. Troubleshooting: Python Syntax Error | 排错实战：代码语法错误
+* **Scenario**: Pushed code with a syntax error (f-string/print issue).
+* **Observation**: Container status showed `Restarting`, and `docker logs` revealed `SyntaxError`.
+* **Lesson**: Docker status `Restarting` usually means the app is crashing internally.
+* **场景**: 推送了带有语法错误的代码。
+* **现象**: 容器状态显示为 `Restarting`，通过 `docker logs` 发现 `SyntaxError`。
+* **教训**: 容器不断重启通常意味着程序内部崩溃，需查看日志。
+
+### 3. Precision Rollback (The "Time Travel") | 精准回滚（时空穿越）
+* **Technique**: Instead of re-pushing code, manually deployed a specific image using its Git SHA tag.
+* **Command**: `docker run ... image:bcfffe8...`
+* **Lesson**: Tagging images with Git SHA is essential for reliable rollback.
+* **技术**: 不重新推送代码，而是使用特定的 Git SHA 标签手动部署旧镜像。
+* **指令**: `docker run ... image:bcfffe8...`
+* **教训**: 为镜像打上 Git SHA 标签是实现可靠回滚的关键。
+
+---
+
+## 📋 Emergency Cheatsheet | 运维紧急小抄
+
+| Action / 动作 | Command / 指令 |
+| :--- | :--- |
+| **Check Logs / 看日志** | `docker logs jm-monitor` |
+| **Check Status / 看状态** | `docker ps -a` |
+| **Stop & Clear / 停止与清理** | `docker rm -f jm-monitor` |
+| **Manual Deploy / 手动部署** | `docker run -d --name jm-monitor -p 80:10000 <image_url>:<tag>` |
+| **Check Health / 查健康** | `docker inspect --format='{{json .State.Health}}' jm-monitor` |
+
+---
+
+> **"A red pipeline is a teacher; a green one is a result."**
+> **“红色的流水线是老师，绿色的流水线是结果。”**
