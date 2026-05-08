@@ -28,4 +28,4 @@ CMD ["python", "bot.py"]
 
 # 每 30 秒检查一次，如果连续 3 次失败，就标记为 unhealthy
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:80/ || exit 1
+    CMD curl -f http://localhost:10000/ || exit 1
