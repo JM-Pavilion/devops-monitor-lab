@@ -37,5 +37,12 @@ jobs:
           docker stop jm-monitor || true
           docker rm jm-monitor || true
           docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-          docker run -d --name jm-monitor --restart always -p 80:10000 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+        #   docker run -d --name jm-monitor --restart always -p 80:10000 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+           docker run -d \
+              --name jm-monitor \
+              --restart always \
+              --memory="512m" \
+              --cpus="0.5" \
+              -p 80:10000 \
+              crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
           docker image prune -f
