@@ -797,3 +797,47 @@ This repository documents the journey of building a professional CI/CD pipeline 
 
 > **"A red pipeline is a teacher; a green one is a result."**
 > **“红色的流水线是老师，绿色的流水线是结果。”**
+
+---
+# ​📝 学习日志 | Learning Log (2026-05-08)
+
+Achieve "industrial-grade" system hardening, resolve environment changes caused by server reboots, and optimize the CI/CD automation pipeline.(​实现系统的“工业级”加固，解决服务器重启带来的环境变动问题，并优化 CI/CD 自动化链路。)
+
+## 🛠️ 技术突破 | Technical Milestones
+### 1. 健康检查修复 | Health Check Repair
+* **​问题 | Issue**: 容器状态显示为 unhealthy，因为检查端口（80）与业务端口（10000）不一致。
+The container status was unhealthy because the probe port (80) did not match the service port (10000).
+* **​对策 | Solution**: 修改 Dockerfile 中的 HEALTHCHECK 指令，精准指向 10000 端口。
+Updated the HEALTHCHECK instruction in the Dockerfile to accurately point to port 10000.
+* **​指令 | Command**: CMD curl -f http://localhost:10000/ || exit 1
+
+### ​2. 资源限制（装甲加固） | Resource Limits (Hardening)
+* **​目的 | Purpose**: 防止机器人程序因 Bug 耗尽服务器 CPU 或内存导致宕机。
+Prevent the bot from exhausting server CPU or memory due to bugs, which could lead to system crashes.
+* **​配置 | Config**: 在 deploy.yml 的 docker run 指令中加入资源上限。
+Added resource caps to the docker run command in deploy.yml.
+* ​--memory="512m"
+* --cpus="0.5"
+### ​3. SSH 通信排障 | SSH Troubleshooting
+* **​现象 | Symptom**: 服务器重启导致 IP 变动及身份验证失败 (handshake failed)。
+Server reboot led to IP changes and authentication failures (handshake failed).
+* **​修复步骤 | Fix Steps**:
+1. ​更新 GitHub Secrets 中的 ECS_HOST 与 ECS_PASSWORD。
+Updated ECS_HOST and ECS_PASSWORD in GitHub Secrets.
+2. ​在服务器端开启密码验证权限 (PasswordAuthentication yes)。
+Enabled password authentication on the server-side.
+3. 重置 PermitRootLogin 确保 root 登录权限。
+Reset PermitRootLogin to ensure root access.
+## ​🏗️ 自动化链路优化 | CI/CD Pipeline Optimization
+* **​YAML 纠错 | YAML Debugging**: 修复了 deploy.yml 中的缩进错误及多行命令的转义字符（\）错误。
+Fixed indentation errors and escape character (\) issues in multi-line commands within deploy.yml.
+* **​开机自启 | Boot Autostart**: 配置 Docker 服务开机自启，增强系统恢复能力。
+Configured Docker to start on boot, enhancing system resilience.
+​systemctl enable docker
+## 🧠 核心感悟 | Key Takeaways
+1. **​配置即代码 (IaC)**: 所有的修复都应反映在代码中（如 deploy.yml），而不是仅仅在服务器上手动执行。
+Infrastructure as Code: All fixes should be reflected in code (e.g., deploy.yml) rather than just being manual executions on the server.
+2. **​日志是真理 (Logs are Truth)**: 通过 docker logs 和 GitHub Actions 日志定位问题，消除焦虑。
+Logs are Truth: Use docker logs and GitHub Actions logs to pinpoint issues and eliminate uncertainty.
+3. **​容灾意识 (Disaster Recovery)**: 即使服务器被重置，只要镜像在 ACR 且脚本在 Actions，系统即可秒级复活。
+Disaster Recovery: Even if the server is reset, the system can be restored in seconds as long as images are in ACR and scripts are in Actions.
