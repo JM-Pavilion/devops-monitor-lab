@@ -4,6 +4,7 @@ name: Docker Build and Push
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:  # 加上这一行，手动开关就出现了！
 
 jobs:
   build-and-push:
