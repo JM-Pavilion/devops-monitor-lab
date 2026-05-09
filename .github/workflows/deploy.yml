@@ -42,6 +42,6 @@ jobs:
             --restart always \
             --memory="512m" \
             --cpus="0.5" \
-            -p 80:10000 \
+            -p 10000:10000 \
             crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
           docker image prune -f
