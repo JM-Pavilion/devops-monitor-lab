@@ -33,7 +33,14 @@ jobs:
         username: root
         password: ${{ secrets.ECS_PASSWORD }} # 确保这里是你的新密码
         script: |
+          # 1. 登录仓库
           echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+          
+          # 2. 自动化配置 Nginx (增加目录检查)
+          mkdir -p /etc/nginx/sites-enabled
+          echo '${{ secrets.NGINX_CONFIG }}' > /etc/nginx/sites-enabled/default
+          
+          # 3. 部署容器 (端口已改为 10000)
           docker stop jm-monitor || true
           docker rm jm-monitor || true
           docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
@@ -44,4 +51,8 @@ jobs:
             --cpus="0.5" \
             -p 10000:10000 \
             crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+          
+          # 4. 清理旧镜像并重启服务
           docker image prune -f
+          nginx -t && systemctl restart nginx
+

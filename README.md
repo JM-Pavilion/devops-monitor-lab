@@ -841,3 +841,63 @@ Infrastructure as Code: All fixes should be reflected in code (e.g., deploy.yml)
 Logs are Truth: Use docker logs and GitHub Actions logs to pinpoint issues and eliminate uncertainty.
 3. **​容灾意识 (Disaster Recovery)**: 即使服务器被重置，只要镜像在 ACR 且脚本在 Actions，系统即可秒级复活。
 Disaster Recovery: Even if the server is reset, the system can be restored in seconds as long as images are in ACR and scripts are in Actions.
+
+
+# 📝 学习日志 | Learning Log (2026-05-09)
+
+## ​🎯 今日目标 | Today's Objectives
+Secure the GitHub account, migrate to a cost-effective Student Discount server, and implement a Nginx Reverse Proxy architecture.(​完成 GitHub 账号安全加固，迁移至高性能低成本的学生优惠服务器，并实现 Nginx 反向代理架构。)
+
+## 🛠️ 技术突破 | Technical Milestones
+### 1. GitHub 2FA 安全加固 | GitHub 2FA Security Hardening
+* ​挑战 | Challenge: GitHub 强制开启 2FA，但由于地区限制，+86 手机号无法接收验证码。
+GitHub enforced 2FA, but SMS verification was unavailable for +86 phone numbers.
+* ​方案 | Solution: 放弃短信验证，改用身份验证器 App (TOTP)，成功通过验证并备份了恢复代码。
+Abandoned SMS in favor of an Authenticator App (TOTP), successfully verified, and backed up recovery codes.
+
+### ​2. 服务器迁移与成本优化 | Server Migration & Cost Optimization
+* ​动作 | Action: 从“按量付费”模式切换至“开发者成长计划” e 实例 (99元/年)。
+Switched from "Pay-As-You-Go" to the "Developer Growth Plan" e-instance (99 RMB/year).
+* ​配置 | Config:
+​Specs: 2vCPU, 2GiB RAM, 3Mbps Fixed Bandwidth.
+​OS: Ubuntu 24.04 LTS.
+* ​成果 | Result: 降低了 90% 以上的预期成本，获得了永久固定公网 IP。
+Reduced expected costs by over 90% and secured a permanent fixed public IP.
+
+### ​3. Nginx 反向代理架构 | Nginx Reverse Proxy Architecture
+* ​变更 | Change: 改变了“容器直连”模式，引入 Nginx 作为流量入口。
+Moved away from "Direct Container Access" by introducing Nginx as the traffic gateway.
+* ​流向 | Data Flow:
+User (Port 80) -> Nginx -> Docker Container (Port 10000)
+* 优势 | Advantage: 隐藏了后端真实端口，为未来配置多域名和 HTTPS 打下了地基。
+Hidden the backend ports and laid the foundation for multi-domain support and HTTPS.
+
+## ​🏗️ 自动化升级 | Automation Enhancements
+### ​全自动 Nginx 配置同步 | Automated Nginx Sync
+* 创新点 | Innovation: 将 Nginx 配置文件集成到 GitHub Actions 中。
+Integrated Nginx configuration files into GitHub Actions.
+* Secret 管理 | Secret Management: 使用 NGINX_CONFIG 存储服务器配置，实现“配置即代码”。
+Used NGINX_CONFIG secrets to achieve "Configuration as Code".
+* 部署逻辑 | Deployment Logic:
+```bash
+echo '${{ secrets.NGINX_CONFIG }}' > /etc/nginx/sites-enabled/default
+nginx -t && systemctl restart nginx
+```
+
+## 🧠 核心知识点 | Key Concepts
+### 公网 IP vs. 私网 IP | Public IP vs. Private IP
+* ​公网 IP (Public IP): 互联网的“大门牌号”，GitHub Actions 部署必须使用的地址。
+The "Street Address" for the internet; mandatory for GitHub Actions deployment.
+* ​私网 IP (Private IP): 阿里云内网的“房间号”，用于服务器之间或服务器与数据库之间的内部通信。
+The "Room Number" within Alibaba Cloud; used for internal communication between services or databases.
+## 📊 状态检查 | Status Check
+* ​[x] GitHub 2FA 已开启 (2FA Enabled)
+* [x] 99元学生服务器已启动 (Student Server Running)
+* ​[x] 安全组 80/22 端口已开放 (Security Groups Configured)
+* [x] Docker + Nginx 联动成功 (Nginx & Docker Integrated)
+* ​[x] CI/CD 流程再次全绿 (CI/CD Pipeline All Green)
+
+
+
+
+
