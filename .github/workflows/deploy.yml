@@ -32,7 +32,7 @@ jobs:
         host: ${{ secrets.ECS_HOST }}
         username: root
         password: ${{ secrets.ECS_PASSWORD }} # 确保这里是你的新密码
-         script: |
+        script: |
           # 1. 登录阿里云容器镜像服务
           echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
           
@@ -83,4 +83,5 @@ jobs:
           # 6. 清理旧镜像、检查配置并重启 Nginx
           docker image prune -f
           nginx -t && systemctl restart nginx
+
 
