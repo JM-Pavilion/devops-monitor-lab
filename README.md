@@ -898,6 +898,55 @@ The "Room Number" within Alibaba Cloud; used for internal communication between 
 * ​[x] CI/CD 流程再次全绿 (CI/CD Pipeline All Green)
 
 
+# 📝 学习日志 | Learning Log (2026-05-10)
 
+## ​🎯 今日目标 | Today's Objectives
+Troubleshoot the Nginx 502 error, implement local fake domain resolution, and automate self-signed HTTPS certificate deployment.(​诊断并修复 Nginx 502 错误，实现本地伪域名解析，并完成自签名 HTTPS 证书的自动化部署。)
+
+## ​🛠️ 技术突破 | Technical Milestones
+### 1. 502 故障排除 | 502 Bad Gateway Troubleshooting
+* 现象 | Symptom: 网页无法打开，显示 502，但 GitHub Actions 显示部署成功。
+The website showed 502 while GitHub Actions reported a successful deployment.
+* ​诊断 | Diagnosis: 容器运行正常（10000 端口），但 Nginx 配置文件为空，导致转发失效。
+The container was healthy (Port 10000), but the Nginx config was empty, causing proxy failure.
+* ​修复 | Fix: 手动重建 Nginx 配置并重启服务。
+Manually reconstructed the Nginx configuration and restarted the service.
+### 2. 伪域名解析 | Fake Domain Resolution (Local Hosts)
+* ​概念 | Concept: 修改本地电脑的 hosts 文件，将自定义域名映射到服务器 IP。
+Modify the local hosts file to map a custom domain to the server's IP.
+* ​实现 | Implementation:
+118.178.112.154 www.jm-monitor.com
+* 成果 | Result: 摆脱了枯燥的 IP 地址，通过域名 www.jm-monitor.com 访问项目。
+Replaced the raw IP with a more professional domain www.jm-monitor.com for local access.
+### ​3. 自签名 HTTPS 部署 | Self-signed HTTPS Implementation
+* 动作 | Action: 使用 OpenSSL 生成 2048 位 RSA 加密证书。
+Generated a 2048-bit RSA encrypted certificate using OpenSSL.
+* ​配置 | Config: Nginx 同时监听 80 (HTTP) 和 443 (HTTPS) 端口。
+Nginx now listens on both Port 80 (HTTP) and Port 443 (HTTPS).
+* 意义 | Significance: 实现了端到端的数据加密，跨越了 Web 安全的技术门槛。
+Achieved end-to-end data encryption and crossed the technical threshold of Web security.
+## ​🚀 自动化进化 | Automation Evolution
+### 工业级部署脚本 | Production-Ready Deployment Script
+* ​改进 | Improvement: 解决了 EOF 闭合问题，并增加了证书自动补齐功能。
+Fixed the EOF closure issue and added an automatic certificate replenishment logic.
+* 核心逻辑 | Core Logic:
+  - **​自动签发 | Auto-issue**: 如果服务器缺失证书，脚本会自动运行 openssl 生成。
+Auto-generates certificates using openssl if they are missing on the server.
+  - **配置即代码 | Config as Code**: Nginx 配置直接嵌入 deploy.yml，实现版本控制。
+Embedded Nginx config directly in deploy.yml for better version control.
+  - **​增强 Header | Enhanced Headers**: 增加了 X-Forwarded-Proto 等字段，确保后端能感知加密状态。
+Added headers like X-Forwarded-Proto to ensure the backend recognizes the encrypted state.
+## 🧠 核心知识点 | Key Concepts
+* ​反向代理 (Reverse Proxy): Nginx 作为前台接客，根据域名将请求分发给内部容器。
+Nginx acts as a front-desk agent, distributing requests to internal containers based on hostnames.
+* SSL 证书 (SSL Certificate): 包含公钥和私钥对。.crt 是发给客人的证件，.key 是必须锁在服务器里的钥匙。
+Contains a public/private key pair. .crt is the ID for clients; .key is the private key kept secure on the server.
+* ​502 vs 404: 502 代表门卫（Nginx）在，但屋里没人；404 代表门卫告诉你根本没这个房间。
+502 means the gatekeeper (Nginx) is there but the host is away; 404 means the gatekeeper says the room doesn't exist.
+## 📊 状态检查 | Status Check
+* ​[x] 本地 Hosts 映射成功 (Local Hosts Mapping OK)
+* [x] 443 端口安全组已开放 (Port 443 Security Group Open)
+* [x] 浏览器可通过 HTTPS 访问 (HTTPS Accessible)
+* ​[x] GitHub Actions 全自动配置 (CI/CD Fully Automated)
 
 
