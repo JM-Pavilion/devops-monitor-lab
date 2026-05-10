@@ -51,8 +51,24 @@ jobs:
             --cpus="0.5" \
             -p 10000:10000 \
             crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-          
-          # 4. 清理旧镜像并重启服务
+
+          # 4. 同步 Nginx 配置
+          cat <<EOF > /etc/nginx/sites-enabled/default
+          $(cat <<'INNER_EOF'
+          server {
+              listen 80;
+              server_name www.jm-monitor.com;
+
+              location / {
+                  proxy_pass http://127.0.0.1:10000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+          }
+          INNER_EOF
+          )
+          EOF
+
+          # 5. 清理旧镜像并重启服务
           docker image prune -f
           nginx -t && systemctl restart nginx
-
