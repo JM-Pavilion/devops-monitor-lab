@@ -949,4 +949,51 @@ Contains a public/private key pair. .crt is the ID for clients; .key is the priv
 * [x] 浏览器可通过 HTTPS 访问 (HTTPS Accessible)
 * ​[x] GitHub Actions 全自动配置 (CI/CD Fully Automated)
 
+---
+
+# 📝 学习日志 | Learning Log (2026-05-11)
+## ​🎯 今日目标 | Today's Objectives
+Resolve VPN network conflicts, implement multi-subdomain routing (Virtual Hosts), and bypass cloud provider filing blocks.(​解决 VPN 网络冲突问题，实现单服务器多子域名（Virtual Hosts）分流管理，并绕过云厂商备案拦截。)
+
+## 🛠️ 技术突破 | Technical Milestones
+### ​1. VPN 与 DNS 冲突排查 | VPN & DNS Conflict Resolution
+* 现象 | Symptom: 开启 VPN 后伪域名失效。
+Fake domains failed to resolve when VPN was active.
+* ​原理 | Principle: VPN 会接管系统 DNS 请求，跳过本地 hosts 文件。
+VPN intercepts DNS requests, bypassing the local hosts file.
+* 解决 | Solution: 访问本地测试环境时关闭 VPN 代理。
+Disable VPN proxies when accessing local development environments.
+### ​2. Nginx 虚拟主机 (Virtual Hosts) | Nginx Virtual Hosts
+* 架构 | Architecture: 一个 IP 地址，根据不同的域名导向不同的 Docker 端口。
+One IP address routing to different Docker ports based on Hostnames.
+* ​成果 | Result: 成功配置了 www, api, manage 三个独立的流量入口。
+Successfully configured independent entry points for www, api, and manage.
+### ​3. 绕过备案拦截 | Bypassing Domain Filing Blocks
+* 挑战 | Challenge: 使用 .com 伪域名被阿里云网关拦截并提示备案。
+Using a .com fake domain triggered the Alibaba Cloud filing interceptor.
+* ​对策 | Countermeasure: 使用非保留的后缀（如 .test 或 .local）成功绕过检测。
+Successfully bypassed detection by using non-standard suffixes like .test or .local.
+
+## 💡 核心配置展示 | Core Configuration
+```bash
+# 典型多房间配置 / Multi-room Configuration
+server {
+    listen 80;
+    server_name api.jm.test;
+    location / {
+        proxy_pass http://127.0.0.1:10001;
+        proxy_set_header Host $host;
+  }
+}
+```
+
+## 📊 状态检查 | Status Check
+* [x] 本地 Hosts 更新完成 (Local Hosts Updated)
+* ​[x] 三个子域名访问正常 (Three Subdomains Accessible)
+* ​[x] 成功绕过备案页面 (Filing Block Bypassed)
+* ​[x] Nginx 转发逻辑全线通畅 (Nginx Routing OK)
+
+
+
+
 
