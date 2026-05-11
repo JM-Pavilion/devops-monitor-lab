@@ -50,6 +50,8 @@ jobs:
           
           # 4. 写入 Nginx 配置文件 (覆盖旧配置)
           cat <<EOF > /etc/nginx/sites-enabled/default
+
+          # 房间1：主监控
           server {
               listen 80;
               listen 443 ssl;
@@ -66,6 +68,27 @@ jobs:
                   proxy_set_header X-Forwarded-Proto \$scheme;
               }
           }
+
+          # 房间2： API接口站
+          server {
+            listen 80;
+            server_name api.jm-monitor.com;
+            location / {
+              proxy_pass http://127.0.0.1:10001; # 假设API接口在10001端口
+              proxy_set_header Host \$host;
+            }
+          }
+
+          # 房间3： 管理后台
+          server {
+            listen 80;
+            server_name manage.jm-monitor.com;
+            location / {
+              proxy_pass http://127.0.0.1:10002;
+              proxy_set_header Host \$host;
+            }
+          }
+              
           EOF
 
           # 5. 部署容器
