@@ -1,4 +1,4 @@
-# 🏴‍☠️ JM DevOps Monitor Lab
+# JM DevOps Monitor Lab
 
 [![CI Pipeline](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml/badge.svg)
 ](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml)
@@ -66,11 +66,11 @@ docker-compose up -d
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
+> The sections below document the learning journey and technical decisions made during development.
+
 ---
 
-## The sections below document the learning journey and technical decisions made during development.
-
-
+# 🏴‍☠️ OverTheWire Bandit: Linux & Security Cheat Sheet
 
 [![Python Professional CI](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml/badge.svg)](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml)
 
@@ -728,7 +728,7 @@ This project demonstrates a complete GitOps workflow, automating the deployment 
 - **Solution(方案)**: Built a Private Registry on Alibaba Cloud Container Registry (ACR) for internal high-speed distribution.(在阿里云构建私有镜像仓库 (ACR)，实现内网高速分发。)
 - **Commands / 关键命令**:
   ```bash
-  docker login --username=nick4099990906 crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+  docker login --username=<YOUR_ACR_USERNAME> <YOUR_ACR_REGISTRY_URL>
   docker tag jm-monitor:latest <ACR_URL>/jm-monitor:v1.0
   docker push <ACR_URL>/jm-monitor:v1.0
   ```
@@ -803,7 +803,7 @@ yes > /dev/null &  # Multi-threaded to saturate CPU cores
 1. **​Modify code** in app.py.
 2. **​Commit & Push**: git push origin main.
 3. **​Watch Magic**: Check GitHub Actions tab for the green checkmarks.
-4. **​Verify**: Visit http://118.178.110.157 to see the live updates.
+4. **​Verify**: Visit <ECS_PUBLIC_IP> to see the live updates.
 
 ---
 
