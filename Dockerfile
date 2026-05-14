@@ -23,9 +23,10 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /root/.local /root/.local
 COPY . .
 ENV PATH=/root/.local/bin:$PATH
-CMD ["python", "bot.py"]
-
 
 # 每 30 秒检查一次，如果连续 3 次失败，就标记为 unhealthy
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:10000/ || exit 1
+CMD ["python", "bot.py"]
+
+
