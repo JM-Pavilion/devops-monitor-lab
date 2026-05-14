@@ -1,7 +1,6 @@
 services:
-  # 1. 你的核心监控服务
   health-monitor:
-    image: jminng/jm-monitor:latest
+    image: jminng/jm-monitor:latest # 代码已构建进镜像，无需挂载
     container_name: jm-monitor-service
     environment:
       - TARGET_URL=http://web-target
@@ -13,9 +12,7 @@ services:
       - jm-network
     restart: always
     volumes:
-      - ./logs:/app/logs #映射：把当前目录下的 logs 文件夹映射到容器内的 /app/logs 文件夹
-      - ./bot.py:/app/bot.py # <--- 新增：挂载代码文件，实现热更新
-    # --- 修正点：healthcheck 必须缩进在服务名称下方 ---
+      - ./logs:/app/logs # 只挂载日志，数据持久化
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" ]
       interval: 30s
@@ -23,27 +20,9 @@ services:
       retries: 3
       start_period: 10s
 
-  # 2. 模拟一个被监控的 Web 服务
   web-target:
     image: nginx:alpine
     container_name: jm-web-target
-    networks:
-      - jm-network
-
-  # --- 3. 新增：本地 AWS 模拟云 (LocalStack) ---
-  localstack:
-    image: localstack/localstack:3.4.0
-    container_name: jm-localstack
-    ports:
-      - "127.0.0.1:4566:4566" # 这里的 127.0.0.1 能规避你刚才遇到的 IPv6 报错
-      - "127.0.0.1:4571:4571"
-    environment:
-      - SERVICES=ec2,vpc,s3,iam # 开启你 main.tf 涉及的服务
-      - DEBUG=1
-      # 2.告诉它别去管 Docker 网络的复杂隔离，简化运行环境
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - jm-network
 

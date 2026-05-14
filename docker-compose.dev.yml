@@ -1,0 +1,22 @@
+# 开发环境配置 - 仅供本地开发使用
+# 启动命令：docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  health-monitor:
+    volumes:
+      - ./bot.py:/app/bot.py # 热更新：修改代码无需重建镜像
+      - ./logs:/app/logs
+
+  localstack:
+    image: localstack/localstack:3.4.0
+    container_name: jm-localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=ec2,vpc,s3,iam
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - jm-network

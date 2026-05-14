@@ -1,4 +1,76 @@
-# 🏴‍☠️ OverTheWire Bandit: Linux & Security Cheat Sheet
+# 🏴‍☠️ JM DevOps Monitor Lab
+
+[![CI Pipeline](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml/badge.svg)
+](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml)
+
+A production-style cloud monitoring system built to demonstrate end-to-end DevOps practices,
+from infrastructure provisioning to automated deployment and observability.
+
+## 🏗️ Architecture
+GitHub Push
+
+↓
+
+GitHub Actions (CI/CD)
+
+↓ build & push image
+
+Alibaba Cloud ACR (Private Registry)
+
+↓ SSH deploy
+
+Alibaba Cloud ECS
+
+├── Nginx (Reverse Proxy, Port 80/443)
+
+└── JM-Monitor (Flask App, Port 10000)
+
+↓ monitors
+
+External Services (Baidu, GitHub, Bing)
+
+↓ alerts
+
+Feishu Webhook
+
+### Infrastructure provisioned by Terraform (IaC)
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Cloud | Alibaba Cloud (ECS, VPC, ACR, CMS) |
+| IaC | Terraform |
+| CI/CD | GitHub Actions |
+| Containerization | Docker & Docker Compose |
+| Backend | Python 3.9 / Flask |
+| Alerting | Feishu Webhook |
+| OS | Ubuntu 22.04 LTS |
+
+## ✅ Key Capabilities Demonstrated
+
+- **GitOps Pipeline**: `git push` → auto build → auto deploy to cloud ECS
+- **IaC**: Full VPC/Subnet/Security Group/EC2 provisioned via Terraform
+- **Immutable Infrastructure**: Code baked into Docker image; no code mounts in production
+- **Observability**: CPU stress test + CloudMonitor alarm verification (end-to-end)
+- **Security**: IAM least-privilege, secrets via GitHub Secrets, no hardcoded credentials
+- **Resilience**: `restart: always` + healthcheck probes configured
+
+## 🚀 Quick Start
+
+```bash
+# Production
+docker-compose up -d
+
+# Development (with hot-reload)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+---
+
+## The sections below document the learning journey and technical decisions made during development.
+
+
 
 [![Python Professional CI](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml/badge.svg)](https://github.com/JM-Pavilion/devops-monitor-lab/actions/workflows/ci-test.yml)
 
