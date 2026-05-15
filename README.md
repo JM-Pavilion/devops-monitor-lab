@@ -987,7 +987,7 @@ Manually reconstructed the Nginx configuration and restarted the service.
 * ​概念 | Concept: 修改本地电脑的 hosts 文件，将自定义域名映射到服务器 IP。
 Modify the local hosts file to map a custom domain to the server's IP.
 * ​实现 | Implementation:
-118.178.112.154 www.jm-monitor.com
+www.jm-monitor.com
 * 成果 | Result: 摆脱了枯燥的 IP 地址，通过域名 www.jm-monitor.com 访问项目。
 Replaced the raw IP with a more professional domain www.jm-monitor.com for local access.
 ### ​3. 自签名 HTTPS 部署 | Self-signed HTTPS Implementation
@@ -1065,7 +1065,48 @@ server {
 * ​[x] 成功绕过备案页面 (Filing Block Bypassed)
 * ​[x] Nginx 转发逻辑全线通畅 (Nginx Routing OK)
 
+# Portainer Troubleshooting & System Upgrade (2026-05-15)
 
+## 📖 Overview / 概述
+Successfully upgraded the management infrastructure from an obsolete Portainer version (2.11) to the latest LTS version (2.39.2), resolving a critical API compatibility issue with the underlying Docker Engine (v29.4.3).
+成功将管理基础设施从过时的 Portainer 版本 (2.11) 升级到最新的 LTS 版本 (2.39.2)，解决了与底层 Docker 引擎 (v29.4.3) 的关键 API 兼容性问题。
+
+## 🛠️ Issues Encountered / 遇到的问题
+
+### 1. API Version Mismatch / API 版本不匹配
+- **Error**: `client version 1.37 is too old. Minimum supported API version is 1.40`.
+- **Cause**: Portainer 2.11 used an outdated API protocol that the modern Docker Engine (API 1.54) rejected.
+- **后果**: Portainer 无法获取容器数据，导致控制台（Console）显示空白。
+
+### 2. JavaScript Entrypoint Error / 前端代码崩溃
+- **Error**: `TypeError: Cannot read properties of undefined (reading 'Entrypoint')`.
+- **Cause**: The old UI could not parse the metadata format of modern Docker images.
+- **后果**: 浏览器前端逻辑中断，无法渲染 "Connect" 按钮。
+
+### 3. Registry Connection Timeout / 镜像库连接超时
+- **Error**: `context deadline exceeded` while pulling from Docker Hub.
+- **Solution**: Switched to a domestic mirror (`m.daocloud.io`) and configured Alibaba Cloud ACR for private image access.
+- **解决方案**: 切换至国内加速镜像源并配置了阿里云私有仓库 (ACR) 的身份验证。
+
+## 💡 Key Solutions / 关键解决方案
+
+1. **Forced API Alignment**: Injected environment variable `-e DOCKER_API_VERSION=1.54` during container startup.
+   **强制 API 对齐**: 在容器启动时注入环境变量 `-e DOCKER_API_VERSION=1.54`。
+2. **Hard Upgrade**: Performed `docker stop/rm` on the old instance and pulled the explicit LTS tag `2.39.2`.
+   **强制升级**: 彻底删除旧实例并拉取明确的 LTS 版本标签。
+3. **Nginx Verification**: Verified reverse proxy paths to ensure internal WebSocket traffic for the console was correctly routed.
+   **Nginx 验证**: 验证反向代理路径，确保控制台的 WebSocket 流量正确转发。
+
+## 命令行复盘 (Command History)
+```bash
+# Force run with API patch / 强制带补丁运行
+docker run -d -p 10002:9000 --name portainer \
+    --restart=always \
+    -e DOCKER_API_VERSION=1.54 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v portainer_data:/data \
+    portainer/portainer-ce:2.39.2
+```
 
 
 
