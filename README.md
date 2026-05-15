@@ -988,6 +988,7 @@ Manually reconstructed the Nginx configuration and restarted the service.
 Modify the local hosts file to map a custom domain to the server's IP.
 * ​实现 | Implementation:
 www.jm-monitor.com
+* ​实现 | Implementation: www.jm-monitor.com
 * 成果 | Result: 摆脱了枯燥的 IP 地址，通过域名 www.jm-monitor.com 访问项目。
 Replaced the raw IP with a more professional domain www.jm-monitor.com for local access.
 ### ​3. 自签名 HTTPS 部署 | Self-signed HTTPS Implementation
