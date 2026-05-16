@@ -27,18 +27,8 @@ jobs:
           docker push $IMAGE_TAG
 
   # 第二阶段：Terraform 预览 (IaC)
-cat > /home/claude/new-terraform.yml << 'EOF'
-name: Terraform Plan (Preview Only)
-
-# 只预览，不自动执行，防止意外产生费用
-# 如果需要真正 apply，请手动在本地执行
-on:
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-jobs:
   terraform-plan:
+    needs: build-and-push # 确保镜像推成功了，才跑 Terraform 检查
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -56,6 +46,9 @@ jobs:
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          # 必须带上 OSS 密钥，否则 GitHub 连不上你昨天的云端大脑
+          OSS_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          OSS_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
 
       - name: Terraform Plan
@@ -64,5 +57,3 @@ jobs:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
-EOF
-echo "done"
