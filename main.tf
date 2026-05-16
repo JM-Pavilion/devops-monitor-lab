@@ -101,9 +101,9 @@ resource "alicloud_cms_alarm" "cpu_alarm" {
   metric             = "CPUUtilization"     # 监控指标：CPU 使用率
   
   # 关联到你昨天创建的那台服务器
-  metric_dimensions = {
+  metric_dimensions = jsonencode({
     instanceId = alicloud_instance.jm_server.id
-  }
+  })
 
   period             = 60
   contact_groups     = [] 
