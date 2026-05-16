@@ -1,0 +1,52 @@
+name: Master CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  # 第一阶段：构建并推送镜像到阿里云 ACR
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to ACR
+        uses: aliyun/acr-login@v1
+        with:
+          login-server: ${{ secrets.ALIREPO_REGISTRY }}
+          username: ${{ secrets.ALIREPO_USERNAME }}
+          password: ${{ secrets.ALIREPO_PASSWORD }}
+
+      - name: Build and Push
+        run: |
+          IMAGE_TAG=${{ secrets.ALIREPO_REGISTRY }}/jm-lab/jm-monitor:latest
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+
+  # 第二阶段：Terraform 预览 (IaC)
+  terraform-plan:
+    needs: build-and-push # 只有镜像推送成功，才跑 Terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+        env:
+          ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          ALICLOUD_REGION: "cn-hangzhou"
+
+      - name: Terraform Plan
+        run: terraform plan -lock=false
+        env:
+          ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          ALICLOUD_REGION: "cn-hangzhou"
