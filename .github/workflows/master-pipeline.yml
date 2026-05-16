@@ -27,9 +27,20 @@ jobs:
           docker push $IMAGE_TAG
 
   # 第二阶段：Terraform 预览 (IaC)
+cat > /home/claude/new-terraform.yml << 'EOF'
+name: Terraform Plan (Preview Only)
+
+# 只预览，不自动执行，防止意外产生费用
+# 如果需要真正 apply，请手动在本地执行
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
   terraform-plan:
-    needs: build-and-push # 只有镜像推送成功，才跑 Terraform
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,16 +48,21 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Clean Lock File
+        run: rm -f .terraform.lock.hcl
+
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -reconfigure -input=false
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
 
       - name: Terraform Plan
-        run: terraform plan -lock=false
+        run: terraform plan -lock=false -input=false
         env:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
+EOF
+echo "done"
