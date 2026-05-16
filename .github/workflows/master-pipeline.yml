@@ -57,3 +57,4 @@ jobs:
           ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
+          TF_VAR_ecs_password: ${{ secrets.ECS_PASSWORD }}
