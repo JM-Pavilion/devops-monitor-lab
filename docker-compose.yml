@@ -4,7 +4,7 @@ services:
   jm-monitor:
     container_name: jm-monitor
     # 使用你在 GitHub Secrets 里配置的最新专属 ACR 镜像地址
-    image: ${ALIREPO_REGISTRY}/jm-lab/jm-monitor:latest
+    image: crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
     ports:
       - "10000:10000"
     environment:
