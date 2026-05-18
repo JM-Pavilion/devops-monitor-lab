@@ -58,3 +58,38 @@ jobs:
           ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
           ALICLOUD_REGION: "cn-hangzhou"
           TF_VAR_ecs_password: ${{ secrets.ECS_PASSWORD }}
+
+  # ✨ 第三阶段：远程无缝自动部署 (CD)
+  deploy:
+    needs: [build-and-push, terraform-plan] # 只有前两个阶段全绿，才执行部署
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy docker-compose.yml to Server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          source: "docker-compose.yml" # 把本地的编排文件传过去
+          target: "/app/jm-monitor"    # 传到服务器的指定目录下
+
+      - name: SSH Remote Commands Execution
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          script: |
+            cd /app/jm-monitor
+            # 1. 登录阿里云 ACR 仓库（让服务器有权限拉取私有镜像）
+            docker login --username=${{ secrets.ALIREPO_USERNAME }} --password=${{ secrets.ALIREPO_PASSWORD }} ${{ secrets.ALIREPO_REGISTRY }}
+            # 2. 拉取最新镜像
+            docker compose pull
+            # 3. 启动/热更新容器
+            docker compose up -d
+            # 4. 清理无用的旧镜像碎片（释放服务器磁盘）
+            docker image prune -f
