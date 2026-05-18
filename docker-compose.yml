@@ -1,31 +1,26 @@
+version: '3.8'
+
 services:
-  health-monitor:
-    image: jminng/jm-monitor:latest # 代码已构建进镜像，无需挂载
-    container_name: jm-monitor-service
-    environment:
-      - TARGET_URL=http://web-target
-    env_file:
-      - .env
+  jm-monitor:
+    container_name: jm-monitor
+    # 使用你在 GitHub Secrets 里配置的最新专属 ACR 镜像地址
+    image: ${ALIREPO_REGISTRY}/jm-lab/jm-monitor:latest
     ports:
-      - "8080:10000"
-    networks:
-      - jm-network
-    restart: always
+      - "10000:10000"
+    environment:
+      - PORT=10000
+      - MONITOR_INTERVAL=20
+      - LOG_PATH=/app/logs # ✨ 告诉 Python，把日志写到容器内部的 /app/logs 里
+      # - FEISHU_WEBHOOK_URL=你的飞书Webhook（如果有的话）
+    
+    # ✨【核心战役点】挂载持久化数据卷
     volumes:
-      - ./logs:/app/logs # 只挂载日志，数据持久化
+      # 语法格式：宿主机(阿里云物理机)路径 : 容器内部路径
+      - /app/jm-monitor/logs:/app/logs
+      
+    restart: always
     healthcheck:
-      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" ]
+      test: ["CMD", "curl", "-f", "http://localhost:10000/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
-
-  web-target:
-    image: nginx:alpine
-    container_name: jm-web-target
-    networks:
-      - jm-network
-
-networks:
-  jm-network:
-    driver: bridge

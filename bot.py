@@ -25,7 +25,8 @@ TARGETS = {
 }
 
 # --- 3.日志配置 ---
-LOG_DIR = os.getenv("LOG_PATH", "./logs")
+# 优先读取环境变量 LOG_PATH，如果读不到，默认用绝对路径 /app/logs
+LOG_DIR = os.getenv("LOG_PATH", "/app/logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR, exist_ok=True)
 log_format = '%(asctime)s - %(message)s'
@@ -184,7 +185,7 @@ if __name__ == "__main__":
         import sys
         sys.exit(0)
 
-    # 在 Flask 启动之前执行，这样一开机就能看到！
+    # 在 Flask 启动之前执行，这样一开机就能看到！快点
     print("==================================================")
     print("🔥 5-18 捷报：JM-Monitor 工业级流水线全自动热更新成功！🔥")
     print("==================================================")
