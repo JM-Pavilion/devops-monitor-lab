@@ -1111,3 +1111,38 @@ docker run -d -p 10002:9000 --name portainer \
 
 
 
+# 📝 Data Persistence & Architecture Hardening / 数据持久化与架构加固 (2026-05-18)
+​Following the successful Phase 2 automated CI/CD pipeline showcase, we officially launched the first battle of **Phase 3: The Full Evolution of JM-Radar—Data Persistence.**(在完成了 Phase 2 的全自动 CI/CD 流水线大阅兵后，今日我们正式打响了 **Phase 3：智能雷达监控全面进化** 的第一枪——**数据持久化战役**。)
+
+​We effectively tackled a major pain point in containerized architectures: the loss of historical memory (logs/data) during continuous service updates. By configuring a Docker **Bind Mount**, we engineered a data pipeline mapping the host's physical storage directly to the container, embedding a "permanent memory chip" into our robot for stateless container recreation without log loss.(我们成功解决了容器化部署中“容器随时转生，但记忆（日志/数据）会洗白清零”的痛点。通过配置 Docker 路径映射（Bind Mount），在阿里云服务器物理硬盘上成功为机器人安装了“永久记忆芯片”，实现了容器在不丢历史日志的情况下的无缝热更新。)
+
+## 🛠️ Core Technological Takeaways / 技术核心沉淀
+### ​1. Production-Grade Configuration Upgrade (docker-compose.yml)/(工业级基础设施配置升级)
+​Removed unpredictable dynamic environment variables for the container image location, hardcoding the dedicated Alibaba Cloud ACR registry path to avoid deployment crashes. Embedded a structural volume pipe and a continuous health check container guard(去除了不稳定的动态环境变量，直接硬编码专属阿里云 ACR 完整域名，防止由于物理机缺少环境变量导致部署闪退。引入了数据卷挂载管道及容器健康检查（Healthcheck）机制)
+
+### 2. Debugging Log Blind Spots Caused by Blocking Functions(阻塞函数导致的“日志盲区”代码修复)
+​Resolved a critical flaw in bot.py where victory logs written after the blocking Flask statement app.run() were trapped in a process deadlock and never printed. Relocated the initialization prints prior to the server initialization, ensuring every hot-reload injects our celebration messages flawlessly.(​修复了 bot.py 主程序中，因将“大捷捷报”写在 Flask 阻塞函数 app.run() 之后，导致 Python 进程被死锁、日志永远无法被打印的逻辑缺陷。将启动打印移至网页服务器监听之前，确保每次热更新都能在日志开头“喷射”大捷捷报。)
+
+### 🕵️‍♂️ Troubleshooting & Diagnostics Command Guide(排查与法医诊断命令指南)
+​Navigating classic Docker edge cases such as caching deadlocks, name conflicts with dangling containers, and inactive mounts yielded these professional triage tools(​在遭遇 Docker 缓存死锁、老旧残存容器同名冲突、以及挂载未生效等经典故障时，沉淀了以下生产级排查命令):
+
+* ### Inspecting Real-time Container Mount Points(透视容器数据卷挂载真相):
+
+```bash
+docker inspect jm-monitor --format='{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\\n"}}{{end}}'
+```
+
+* ### Forcibly Purging Conflicting Container Names(强制删除重名/死锁旧容器):
+```bash
+docker rm -f jm-monitor
+```
+
+* ### Forcing Clean Re-creation Avoiding Caches(强制清除缓存重建容器):
+```bash
+docker compose up -d --force-recreate
+```
+
+## 🏁 Production Verification(线上验收大捷)
+​Successfully verified live persistent logs inside the host server at /app/jm-monitor/logs/monitor.log, displaying rhythmic, automated 30-second server health status requests (200 OK). Battle I is officially won!(最终在阿里云物理服务器的 /app/jm-monitor/logs/monitor.log 路径下成功捕获了直接落盘的持久化日志，同时观察到了每 30 秒雷打不动的健康检查自动请求。战役一红旗顺利插上！)
+
+
