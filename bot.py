@@ -1,3 +1,4 @@
+import json
 import logging
 import requests
 import time
@@ -18,11 +19,8 @@ app = Flask(__name__)
 INTERVAL = int(os.getenv("MONITOR_INTERVAL", "20"))
 # 统一使用 FEISHU_WEBHOOK 变量名
 FEISHU_WEBHOOK = os.getenv("FEISHU_WEBHOOK_URL")
-TARGETS = {
-    "Baidu-Search": "https://www.baidu.com",
-    "GitHub-Global": "https://github.com",
-    "Bing-Search": "https://www.bing.com",
-}
+# ---1.动态加载配置文件 ---
+CONFIG_FILE = "config.json"
 
 # --- 3.日志配置 ---
 # 优先读取环境变量 LOG_PATH，如果读不到，默认用绝对路径 /app/logs
@@ -40,8 +38,36 @@ logging.basicConfig(level=logging.INFO, format=log_format, handlers=[
 
 logging.info("🚀 监控服务已启动，日志记录开始...")
 
-# --- 告警函数 ---
-def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
+def load_config():
+    """动态读取 JSON 配置文件"""
+    default_config = {
+        "MONITOR_INTERVAL": 20,
+        "TIMEOUT_THRESHOLD_MS": 1500,
+        "TARGETS": {
+            "百度首页": "https://www.baidu.com",
+            "GitHub主站": "https://github.com",
+            "bing搜索": "https://www.bing.com"
+        }
+    }
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"⚠️ 读取 config.json 失败，使用默认配置: {e}")
+    return default_config
+
+config = load_config()
+INTERVAL = config.get("MONITOR_INTERVAL", 20)
+LATENCY_THRESHOLD = config.get("TIMEOUT_THRESHOLD_MS", 1500) / 1000.0 # 转换为秒
+TARGETS = config.get("TARGETS", {})
+
+# ---2. 全局状态记忆库 ---
+service_status_cache = {}  # 存储最新的状态文本，用于网页展示
+last_known_status = {}     # 存储上一次的状态（Normal/Error/Down），用于状态机逻辑判断
+
+# --- 3. 飞书高级卡片升级 ---
+def send_feishu_template_alert(service_name, status_desc, latency_ms=None, is_recovery=False):
     """
     发送飞书互动卡片告警：支持故障红框、恢复绿框及一键直达
     """
@@ -54,6 +80,8 @@ def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
     title_prefix = "🟢【恢复】" if is_recovery else "🚨【警报】"
     url = TARGETS.get(service_name, "https://www.baidu.com")
 
+    latency_info = f"\n**响应时间**：`{latency_ms} ms`" if latency_ms else ""
+
     # 飞书互动卡片最新 v2 语法结构
     payload = {
         "msg_type": "interactive",
@@ -64,7 +92,7 @@ def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
             "header": {
                 "title": {
                     "tag": "plain_text",
-                    "content": f"{title_prefix} JM 雷达检测到服务状态变更"
+                    "content": f"{title_prefix} {service_name} 状态变更"
                 },
                 "template": theme
             },
@@ -93,14 +121,9 @@ def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
             ]
         }
     }
+    requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
 
-    try:
-        resp = requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
-        logging.info(f"📬 飞书卡片投递状态: {resp.status_code} - {resp.text}")
-    except Exception as e:
-        logging.error(f"❌ 发送飞书卡片失败: {e}")
-
-# --- 核心监控线程 ---
+# --- 4. 核心多维度监控线程 ---
 def monitoring_worker():
     logging.info("🕵️‍♂️ 后台监控线程已启动...")
     global service_status_cache
@@ -112,37 +135,54 @@ def monitoring_worker():
             last_known_status[name] = "Normal"
 
     while True:
+        # 每次循环都重新加载配置文件，支持热更新（修改 config.json 后无需重启）
+        current_config = load_config()
+        current_targets = current_config.get("TARGETS", {})
+        current_threshold = current_config.get("TIMEOUT_THRESHOLD_MS", 1500) / 1000.0
+
         temp_cache = {}
-        for name, url in TARGETS.items():
+        for name, url in current_targets.items():
+            start_time = time.time() # 开始计时
             try:
-                resp = requests.get(url, timeout=5)
+                resp = requests.get(url, timeout=10)
+                latency = time.time() - start_time # 计算耗时（秒）
+                latency_ms = int(latency * 1000) # 转换为毫秒
+
                 if resp.status_code == 200:
-                    status_text = "✅ 运行正常"
-                    current_state = "Normal"
+                    if latency > current_threshold:
+                        status_text = f"⚠️ 勉强可用，但延迟极高！"
+                        current_state = "HighLatency"
+                    else: # 【修复】补上正常情况的变量赋值
+                        status_text = "✅ 运行正常"
+                        current_state = "Normal"
                 else:
                     status_text = f"⚠️ 状态码异常: {resp.status_code}"
                     current_state = "Error"
             except requests.exceptions.RequestException:
                 status_text = "❌ 发现故障: 网络不可达"
                 current_state = "Down"
+                latency_ms = None # 故障时不显示延迟
 
             # 【核心状态机锁逻辑】
             previous_state = last_known_status.get(name, "Normal")
 
             # 情况A：原本正常，现在异常了 → 发送红色告警卡片
             if previous_state == "Normal" and current_state != "Normal":
-                send_feishu_template_alert(name, status_text,is_recovery=False)
+                send_feishu_template_alert(name, f"{status_text}", latency_ms, is_recovery=False)
             
             # 情况B：原本异常，现在恢复了 → 发送绿色恢复卡片
             elif previous_state != "Normal" and current_state == "Normal":
-                send_feishu_template_alert(name, status_text,is_recovery=True)
+                send_feishu_template_alert(name, "服务已恢复健康运行", latency_ms, is_recovery=True)
 
             # 更新记忆状态，其余“持续挂着”或“持续正常”的情况不发送告警，只更新状态
             last_known_status[name] = current_state
-            temp_cache[name] = status_text
+            temp_cache[name] = f"{status_text} ({latency_ms}ms)" if latency_ms else status_text
+            print(f"[{time.strftime('%X')}] {name}: {status_text} ({latency_ms if latency_ms else 'N/A'} ms)")
 
         service_status_cache = temp_cache
-        time.sleep(INTERVAL)
+        if os.getenv("CI") == "true":
+            break
+        time.sleep(current_config.get("MONITOR_INTERVAL",20))
 
 # --- Flask Web 界面 ---
 @app.route("/")

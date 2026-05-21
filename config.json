@@ -1,0 +1,9 @@
+{
+    "MONITOR_INTERVAL": 20,
+    "TIMEOUT_THRESHOLD_MS": 1500,
+    "TARGETS": {
+        "百度首页": "https://www.baidu.com",
+        "GitHub主站": "https://github.com",
+        "bing搜索": "https://www.bing.com"
+    }
+}
