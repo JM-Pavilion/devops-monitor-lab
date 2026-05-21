@@ -41,29 +41,71 @@ logging.basicConfig(level=logging.INFO, format=log_format, handlers=[
 logging.info("🚀 监控服务已启动，日志记录开始...")
 
 # --- 告警函数 ---
-def send_feishu_alert(service_name, status_desc):
+def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
+    """
+    发送飞书互动卡片告警：支持故障红框、恢复绿框及一键直达
+    """
     if not FEISHU_WEBHOOK:
         print("🛑 未配置飞书 Webhook，跳过告警发送。")
         return
 
-    # 修复了 f-string 格式问题
+    # 动态调整卡片颜色和标题：故障用红色(red)，恢复用绿色(green)
+    theme = "green" if is_recovery else "red"
+    title_prefix = "🟢【恢复】" if is_recovery else "🚨【警报】"
+    url = TARGETS.get(service_name, "https://www.baidu.com")
+
+    # 飞书互动卡片最新 v2 语法结构
     payload = {
-        "msg_type": "text",
-        "content": {
-            "text": f"🚨 JM 雷达告警：服务 [{service_name}] 状态异常！\n当前状态：{status_desc}\n检查时间：{time.ctime()}"
-        },
+        "msg_type": "interactive",
+        "card": {
+            "config": {
+                "wide_screen_mode": True
+            },
+            "header": {
+                "title": {
+                    "tag": "plain_text",
+                    "content": f"{title_prefix} JM 雷达检测到服务状态变更"
+                },
+                "template": theme
+            },
+            "elements": [
+                {
+                    "tag": "div",
+                    "text": {
+                        "tag": "lark_md",
+                        "content": f"**服务名称**：`{service_name}`\n**当前状态**：{status_desc}\n**检测时间**：{time.strftime('%Y-%m-%d %H:%M:%S')}"
+                    }
+                },
+                {
+                    "tag": "action",
+                    "actions": [
+                        {
+                            "tag": "button",
+                            "text": {
+                                "tag": "plain_text",
+                                "content": "🌐 一键直达目标服务"
+                            },
+                            "type": "primary" if is_recovery else "danger",
+                            "url": url
+                        }
+                    ]
+                }
+            ]
+        }
     }
+
     try:
-        requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
-        print("✅ 告警消息已发送到飞书群")
+        resp = requests.post(FEISHU_WEBHOOK, json=payload, timeout=5)
+        logging.info(f"📬 飞书卡片投递状态: {resp.status_code} - {resp.text}")
     except Exception as e:
-        print(f"❌ 发送飞书告警失败: {e}")
+        logging.error(f"❌ 发送飞书卡片失败: {e}")
 
 # --- 核心监控线程 ---
 def monitoring_worker():
     print("🕵️‍♂️ 后台监控线程已启动...")
     global service_status_cache
     
+    # 初始化：让机器人记住所有网站最初都是正常（NOrmal）
     for name in TARGETS:
         last_known_status[name] = "Normal"
 
@@ -82,10 +124,20 @@ def monitoring_worker():
                 status_text = "❌ 发现故障: 网络不可达"
                 current_state = "Down"
 
-            if last_known_status.get(name) == "Normal" and current_state != "Normal":
-                print(f"🔥 检测到服务变更: {name} 变为 {current_state}")
-                send_feishu_alert(name, status_text)
+            # 【核心状态机锁逻辑】
+            previous_state = last_known_status.get(name, "Normal")
 
+            # 情况A：原本正常，现在异常了 → 发送红色告警卡片
+            if previous_state == "Normal" and current_state != "Normal":
+                logging.warning(f"🔥 检测到服务变更: {name} 沦陷！由 Normal 变为 {current_state}")
+                send_feishu_template_alert(name, status_text,is_recovery=False)
+            
+            # 情况B：原本异常，现在恢复了 → 发送绿色恢复卡片
+            elif previous_state != "Normal" and current_state == "Normal":
+                logging.info(f"🎉 检测到服务恢复: {name} 已恢复！")
+                send_feishu_template_alert(name, status_text,is_recovery=True)
+
+            # 更新记忆状态，其余“持续挂着”或“持续正常”的情况不发送告警，只更新状态
             last_known_status[name] = current_state
             temp_cache[name] = status_text
             print(f"{time.ctime()} - {name}: {status_text}")
