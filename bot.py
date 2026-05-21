@@ -22,7 +22,6 @@ TARGETS = {
     "Baidu-Search": "https://www.baidu.com",
     "GitHub-Global": "https://github.com",
     "Bing-Search": "https://www.bing.com",
-    "炸弹测试服务": "https://this-is-a-broken-test-website-jm.com"
 }
 
 # --- 3.日志配置 ---
@@ -103,12 +102,14 @@ def send_feishu_template_alert(service_name, status_desc, is_recovery=False):
 
 # --- 核心监控线程 ---
 def monitoring_worker():
-    print("🕵️‍♂️ 后台监控线程已启动...")
+    logging.info("🕵️‍♂️ 后台监控线程已启动...")
     global service_status_cache
+    global last_known_status # 强行给机器人灌入记忆功能，不准它失忆！
     
     # 初始化：让机器人记住所有网站最初都是正常（NOrmal）
     for name in TARGETS:
-        last_known_status[name] = "Normal"
+        if name not in last_known_status:
+            last_known_status[name] = "Normal"
 
     while True:
         temp_cache = {}
@@ -130,25 +131,17 @@ def monitoring_worker():
 
             # 情况A：原本正常，现在异常了 → 发送红色告警卡片
             if previous_state == "Normal" and current_state != "Normal":
-                logging.warning(f"🔥 检测到服务变更: {name} 沦陷！由 Normal 变为 {current_state}")
                 send_feishu_template_alert(name, status_text,is_recovery=False)
             
             # 情况B：原本异常，现在恢复了 → 发送绿色恢复卡片
             elif previous_state != "Normal" and current_state == "Normal":
-                logging.info(f"🎉 检测到服务恢复: {name} 已恢复！")
                 send_feishu_template_alert(name, status_text,is_recovery=True)
 
             # 更新记忆状态，其余“持续挂着”或“持续正常”的情况不发送告警，只更新状态
             last_known_status[name] = current_state
             temp_cache[name] = status_text
-            print(f"{time.ctime()} - {name}: {status_text}")
 
         service_status_cache = temp_cache
-        
-        # 巧妙设计：如果是 GitHub 测试环境，跑一遍就退出，防止测试卡死
-        if os.getenv("CI") == "true":
-            break
-            
         time.sleep(INTERVAL)
 
 # --- Flask Web 界面 ---
