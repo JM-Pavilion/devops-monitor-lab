@@ -22,6 +22,7 @@ TARGETS = {
     "Baidu-Search": "https://www.baidu.com",
     "GitHub-Global": "https://github.com",
     "Bing-Search": "https://www.bing.com",
+    "炸弹测试服务": "https://this-is-a-broken-test-website-jm.com"
 }
 
 # --- 3.日志配置 ---
