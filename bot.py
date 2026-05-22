@@ -5,6 +5,7 @@ import time
 import os
 import threading
 import sys
+import random
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -129,7 +130,7 @@ def monitoring_worker():
     global service_status_cache
     global last_known_status # 强行给机器人灌入记忆功能，不准它失忆！
     
-    # 初始化：让机器人记住所有网站最初都是正常（NOrmal）
+    # 初始化：让机器人记住所有网站最初都是正常（Normal）
     for name in TARGETS:
         if name not in last_known_status:
             last_known_status[name] = "Normal"
@@ -149,16 +150,35 @@ def monitoring_worker():
                 latency_ms = int(latency * 1000) # 转换为毫秒
 
                 if resp.status_code == 200:
-                    if latency > current_threshold:
-                        status_text = f"⚠️ 勉强可用，但延迟极高！"
-                        current_state = "HighLatency"
-                    else: # 【修复】补上正常情况的变量赋值
-                        status_text = "✅ 运行正常"
-                        current_state = "Normal"
+                    # ✨【Phase 4 核心进化】：如果是我们自己的微服务，进行深度业务码探针检测
+                    if "/api/" in url:
+                        try:
+                            business_data = resp.json()  # 🔍 强行解剖 JSON 内脏
+                            b_code = business_data.get("code")
+                            if b_code == 20000:
+                                status_text = f"✅ 业务正常 (用户数: {business_data['data']['active_users']})"
+                                current_state = "Normal"
+                            else:
+                                status_text = f"❌ 业务内伤！错误码: {b_code}, 原因: {business_data.get('message')}"
+                                current_state = "BusinessError"
+                        except Exception:
+                            status_text = "⚠️ 接口虽通，但返回的不是合法的 JSON 数据！"
+                            current_state = "FormatError"
+                    else:
+                        # 普通的外部网站，依然走原来的延迟检测逻辑
+                        if latency > current_threshold:
+                            status_text = f"⚠️ 勉强可用，但延迟极高！"
+                            current_state = "HighLatency"
+                        else:
+                            status_text = "✅ 运行正常"
+                            current_state = "Normal"
                 else:
+                    # ✨【修复点 1】：补回被误删的非 200 异常状态码处理
                     status_text = f"⚠️ 状态码异常: {resp.status_code}"
                     current_state = "Error"
+
             except requests.exceptions.RequestException:
+                # ✨【修复点 2】：补回被连根挖掉的外层网络异常捕获
                 status_text = "❌ 发现故障: 网络不可达"
                 current_state = "Down"
                 latency_ms = None # 故障时不显示延迟
@@ -184,6 +204,19 @@ def monitoring_worker():
             break
         time.sleep(current_config.get("MONITOR_INTERVAL",20))
 
+
+@app.route("/api/user-service/status")
+def user_service_status():
+    """
+    模拟微服务的真实接口：
+    80% 概率返回真正的业务大捷数据，20% 概率网络通但业务报错（触发内伤）
+    """
+    if random.random() < 0.2:
+        # 模拟“外表健康（200 OK）但内在有病（业务错误）”的情况
+        return {"status": "error", "code": 50001, "message": "Database Connection Timeout!"}, 200
+    
+    # 正常情况
+    return {"status": "success", "code": 20000, "data": {"active_users": 1024, "db_status": "HEALTHY"}}, 200
 # --- Flask Web 界面 ---
 @app.route("/")
 def index():
