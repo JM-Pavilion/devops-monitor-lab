@@ -11,12 +11,13 @@ services:
       - PORT=10000
       - MONITOR_INTERVAL=20
       - LOG_PATH=/app/logs # ✨ 告诉 Python，把日志写到容器内部的 /app/logs 里
-      # - FEISHU_WEBHOOK_URL=你的飞书Webhook（如果有的话）
+      - FEISHU_WEBHOOK_URL=${https://open.feishu.cn/open-apis/bot/v2/hook/e99f601a-3a5e-4360-b536-4949eac47a8a}
     
     # ✨【核心战役点】挂载持久化数据卷
     volumes:
       # 语法格式：宿主机(阿里云物理机)路径 : 容器内部路径
       - /app/jm-monitor/logs:/app/logs
+      
       
     restart: always
     healthcheck:
