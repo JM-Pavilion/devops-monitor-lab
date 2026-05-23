@@ -11,7 +11,7 @@ services:
       - PORT=10000
       - MONITOR_INTERVAL=15
       - LOG_PATH=/app/logs # ✨ 告诉 Python，把日志写到容器内部的 /app/logs 里
-      - FEISHU_WEBHOOK_URL=${https://open.feishu.cn/open-apis/bot/v2/hook/e99f601a-3a5e-4360-b536-4949eac47a8a}
+      - FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/e99f601a-3a5e-4360-b536-4949eac47a8a
 
     # ✨【核心战役点】挂载持久化数据卷
     volumes:
