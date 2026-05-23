@@ -1145,4 +1145,16 @@ docker compose up -d --force-recreate
 ## 🏁 Production Verification(线上验收大捷)
 ​Successfully verified live persistent logs inside the host server at /app/jm-monitor/logs/monitor.log, displaying rhythmic, automated 30-second server health status requests (200 OK). Battle I is officially won!(最终在阿里云物理服务器的 /app/jm-monitor/logs/monitor.log 路径下成功捕获了直接落盘的持久化日志，同时观察到了每 30 秒雷打不动的健康检查自动请求。战役一红旗顺利插上！)
 
+# 📍  Production Hardening & Intelligent Radar Evolution / 工业级架构加固与智能雷达全面进化(2025-05-21)
+## What We Did / 干了什么
+  * **Data Persistence Battle / 数据持久化战役**：Mounted a Docker `Volume/Bind Mount` pipeline mapping host storage directly to the container's interior, ensuring structural log preservation across server recreations.(配置 Docker `Volume/Bind Mount` 管道，将阿里云物理硬盘的 `/app/jm-monitor/logs` 挂载到容器内部，实现“容器随时转生，日志历史永不丢失”。)
+  * **Alert Deduplication Battle / 告警收敛战役**：Integrated a **global state-machine lock** framework to implement a "notify-once-and-silence" mechanism, firing high-priority alerts on edge-transitions only and suppressing storm notifications until final service recovery.(引入**全局状态机锁**逻辑，实现“故障第一秒发红色高级警告，中间无限期保持静默防止刷屏，彻底治愈后才发绿色喜报”。)
+  * **Decoupling & Latency Metric Trackers / 配置解耦与性能测速**：Segmented environments via `config.json` supporting zero-restart hot-reloads; mapped out millisecond-level responsiveness analytics to fuel a custom-tailored Tailwind CSS dashboard.(剥离配置到 `config.json`，支持零重启热加载；引入毫秒级延迟追踪，构建赛博朋克极客风的 Tailwind CSS 状态看板。)
+## **Difficulties Encountered & Triage Retrospective / 遭遇困难及排障复盘**：
+  * **Issue A: Dangling Container Name Collisions / 困难 A：孤儿容器重名死锁**：Volumes failed to register because manual container deployments collided with standard compose naming structures.(更新了 `volumes` 后容器依旧没挂载，手动运行报错名字冲突。)
+    * *Solution / 解决*：Purged legacy artifacts using the destructive `docker rm -f jm-monitor` command, instantly freeing the namespace for clean volume attachment.(旧容器没有被 `docker compose down` 干净，使用底层强制清场令 `docker rm -f jm-monitor` 挫骨扬灰，新容器成功诞生。)
+  * **Issue B: Python Variable Scope Amnesia Fueling Notification Blasts / 困难 B：Python 局部作用域失忆症导致的告警风暴**：Python Variable Scope Amnesia Fueling Notification Blasts**: Despite writing state locks, the Feishu chatroom continued to receive repetitive alert notifications every 20 seconds.(写好了状态锁，但飞书群依然每 20 秒疯狂弹框刷屏。)
+    * *Solution / 解决*：Discovered a missing `global last_known_status` declaration inside the local monitoring routine, which triggered scoping wipes on every iteration loop. Declaring the scope as `global` preserved memory across historical ticks and eliminated alert spamming.(在循环函数内部缺少了 `global last_known_status` 声明，导致状态被当成了局部变量、每次循环都被清空失忆。加上 `global` 强制灌入全局记忆后，彻底锁死告警风暴。)
+  * **Issue C: CI Pipeline Deadlock on Infinite Loop / 困难 C：流水线卡死无限循环**：Because the GitHub runner simulated deployment testing directly against `monitoring_worker()`, the embedded `while True` loop hung the runner runner indefinitely.(因为在 `bot.py` 的 CI 测试模式中直接调用了包含 `while True` 的死循环监控函数，导致 GitHub Actions 流水线永远转圈无法结束。)
+    * *Solution / 解决*：Integrated an execution interceptor at the base of the loop cycle: `if os.getenv("CI") == "true": break`. This enabled the pipeline test case to parse a singular check and exit gracefully with an all-green pass.(在循环体末尾加上拦截器：`if os.getenv("CI") == "true": break`，让测试用例跑完一圈后优雅撤退，流水线顺利恢复全绿。)
 
