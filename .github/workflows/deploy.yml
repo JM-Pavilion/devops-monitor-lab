@@ -3,7 +3,7 @@ name: Docker Build and Push to ACR
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # 帮你加上了手动触发开关，以后在网页也能点！
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -12,15 +12,21 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Log in to ACR
-      run: echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+    # ✨ 登录彻底脱敏
+    - name: Log in to Alibaba Cloud ACR
+      uses: aliyun/acr-login@v1
+      with:
+        login-server: ${{ secrets.ALIYUN_REGISTRY }}
+        username: ${{ secrets.ALIYUN_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
 
+    # ✨ 编译与推送彻底脱敏
     - name: Build and Push Docker Image
       run: |
-        docker build -t crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} .
-        docker tag crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }} crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-        docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:${{ github.sha }}
-        docker push crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+        docker build -t ${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor:${{ github.sha }} .
+        docker tag ${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor:${{ github.sha }} ${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor:latest
+        docker push ${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor:${{ github.sha }}
+        docker push ${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor:latest
 
   deploy:
     needs: build-and-push
@@ -31,16 +37,14 @@ jobs:
       with:
         host: ${{ secrets.ECS_HOST }}
         username: root
-        password: ${{ secrets.ECS_PASSWORD }} # 确保这里是你的新密码
+        password: ${{ secrets.ECS_PASSWORD }}
         script: |
-          # 1. 登录阿里云容器镜像服务
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=nick4099990906 --password-stdin crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com
+          # 1. 登录阿里云（脱敏）
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login --username=${{ secrets.ALIYUN_USERNAME }} --password-stdin ${{ secrets.ALIYUN_REGISTRY }}
           
-          # 2. 准备目录
+          # 2. 准备目录与自签名证书（保留）
           mkdir -p /etc/nginx/ssl
           mkdir -p /etc/nginx/sites-enabled
-
-          # 3. 如果证书不存在，则自动生成（自签名证书）
           if [ ! -f /etc/nginx/ssl/jm-monitor.crt ]; then
             openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
               -keyout /etc/nginx/ssl/jm-monitor.key \
@@ -48,18 +52,14 @@ jobs:
               -subj "/C=CN/ST=Zhejiang/L=Hangzhou/O=JM-Lab/OU=Dev/CN=www.jm-monitor.com"
           fi
           
-          # 4. 写入 Nginx 配置文件 (覆盖旧配置)
+          # 3. 写入 Nginx 路由（保留）
           cat <<EOF > /etc/nginx/sites-enabled/default
-
-          # 房间1：主监控
           server {
               listen 80;
               listen 443 ssl;
               server_name www.jm-monitor.com jm-monitor.com;
-
               ssl_certificate /etc/nginx/ssl/jm-monitor.crt;
               ssl_certificate_key /etc/nginx/ssl/jm-monitor.key;
-
               location / {
                   proxy_pass http://127.0.0.1:10000;
                   proxy_set_header Host \$host;
@@ -68,43 +68,21 @@ jobs:
                   proxy_set_header X-Forwarded-Proto \$scheme;
               }
           }
-
-          # 房间2： API接口站
-          server {
-            listen 80;
-            server_name api.jm-monitor.com;
-            location / {
-              proxy_pass http://127.0.0.1:10001; # 假设API接口在10001端口
-              proxy_set_header Host \$host;
-            }
-          }
-
-          # 房间3： 管理后台
-          server {
-            listen 80;
-            server_name manage.jm-monitor.com;
-            location / {
-              proxy_pass http://127.0.0.1:10002;
-              proxy_set_header Host \$host;
-            }
-          }
-              
           EOF
 
-          # 5. 部署容器
-          docker stop jm-monitor || true
-          docker rm jm-monitor || true
-          docker pull crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
-          docker run -d \
-            --name jm-monitor \
-            --restart always \
-            --memory="512m" \
-            --cpus="0.5" \
-            -p 10000:10000 \
-            crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+          # 4. 进入云端目录并拉取镜像（脱敏）
+          mkdir -p /app/jm-compose-lab
+          cd /app/jm-compose-lab
 
-          # 6. 清理旧镜像、检查配置并重启 Nginx
+          # 💡 动态将密码和域名注入到临时的环境变量中，供 docker compose 使用
+          export ALIYUN_REGISTRY="${{ secrets.ALIYUN_REGISTRY }}"
+          
+          docker pull \$ALIYUN_REGISTRY/jm-lab/jm-monitor:latest
+          
+          docker compose down || true
+          docker compose up -d
+
           docker image prune -f
-          nginx -t && systemctl restart nginx
-
-
+          if command -v nginx >/dev/null 2>&1; then
+             nginx -t && systemctl restart nginx || service nginx restart || true
+          fi

@@ -6,7 +6,7 @@ import os
 import threading
 import sys
 import random
-from flask import Flask
+from flask import Flask, render_template, jsonify, request  # ✨ 确保里面有 request！
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +25,7 @@ CONFIG_FILE = "config.json"
 
 # --- 3.日志配置 ---
 # 优先读取环境变量 LOG_PATH，如果读不到，默认用绝对路径 /app/logs
-LOG_DIR = os.getenv("LOG_PATH", "/app/logs")
+LOG_DIR = os.getenv("LOG_PATH", "logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR, exist_ok=True)
 log_format = '%(asctime)s - %(message)s'
@@ -66,6 +66,11 @@ TARGETS = config.get("TARGETS", {})
 # ---2. 全局状态记忆库 ---
 service_status_cache = {}  # 存储最新的状态文本，用于网页展示
 last_known_status = {}     # 存储上一次的状态（Normal/Error/Down），用于状态机逻辑判断
+
+# 全局心跳内存账本
+heartbeat_ledger = {
+"🔥雷达自身守护锁": time.time() # 初始化雷达自己也是健康的
+}
 
 # --- 3. 飞书高级卡片升级 ---
 def send_feishu_template_alert(service_name, status_desc, latency_ms=None, is_recovery=False):
@@ -142,6 +147,10 @@ def monitoring_worker():
         current_threshold = current_config.get("TIMEOUT_THRESHOLD_MS", 1500) / 1000.0
 
         temp_cache = {}
+
+        # ==========================================
+        # 🔍 第一阶段：主动出击轮询（HTTP 探针）
+        # ==========================================
         for name, url in current_targets.items():
             start_time = time.time() # 开始计时
             try:
@@ -199,12 +208,47 @@ def monitoring_worker():
             temp_cache[name] = f"{status_text} ({latency_ms}ms)" if latency_ms else status_text
             print(f"[{time.strftime('%X')}] {name}: {status_text} ({latency_ms if latency_ms else 'N/A'} ms)")
 
+        # ==========================================
+        # 💓 第二阶段：大本营守株待兔（被动心跳审查）
+        # ==========================================
+        now = time.time()
+        heartbeat_threshold = 30 # 超过30秒没收到心跳就认为服务挂了
+        for s_name, last_seen in list(heartbeat_ledger.items()):
+            elapsed_time = int(now - last_seen)
+            prev_state = last_known_status.get(s_name, "Normal")
+
+            if elapsed_time > heartbeat_threshold:
+                # 判定为失联
+                status_text = f"❌ 失去心跳联络！已持续失联 {elapsed_time} 秒！"
+                current_state = "HeartbeatLost" # ✨【修复点 2】：修正拼写错误
+
+                # 状态机锁：只有从正常变成异常时，才发飞书红色高级卡片
+                if prev_state == "Normal":
+                    send_feishu_template_alert(s_name, status_text, latency_ms=None, is_recovery=False)
+
+                last_known_status[s_name] = "HeartbeatLost"
+                temp_cache[s_name] = f"💀 心跳失联 ({elapsed_time}s)"
+            else:
+                # 依然健康存活
+                status_text = "✅ 心跳保持中"
+                current_state = "Normal"
+
+                # 状态机锁：只有从异常恢复到正常时，才发飞书绿色高级卡片
+                if prev_state != "Normal":
+                    send_feishu_template_alert(s_name, "服务心跳已恢复正常上报", latency_ms=None, is_recovery=True)
+                
+                last_known_status[s_name] = "Normal"
+                temp_cache[s_name] = f"💓 存活中 (最近一次：{elapsed_time}s前)"
+
+            # 核心补丁：吧心跳状态也大声喊出来打印在终端上！
+            print(f"[{time.strftime('%X')}] {s_name}: {status_text} (被动心跳)")
+
         service_status_cache = temp_cache
         if os.getenv("CI") == "true":
             break
         time.sleep(current_config.get("MONITOR_INTERVAL",20))
 
-
+# --- Flask 路由区域 ---
 @app.route("/api/user-service/status")
 def user_service_status():
     """
@@ -217,6 +261,31 @@ def user_service_status():
     
     # 正常情况
     return {"status": "success", "code": 20000, "data": {"active_users": 1024, "db_status": "HEALTHY"}}, 200
+
+@app.route("/api/heartbeat", methods=["POST"])
+def receive_heartbeat():
+    """接收各大微服务主动上报的心跳信号"""
+    try:
+        # 强制解析，防止终端 curl 的单双引号引发崩溃
+        data = request.get_json(force=True, silent=True) 
+        if not data:
+            return {"status": "error", "message": "Invalid JSON format"}, 400
+            
+        service_name = data.get("service_name")
+        if not service_name:
+            return {"status": "error", "message": "Missing service_name"}, 400
+        
+        # 🧾 在账本上更新时间戳
+        global heartbeat_ledger
+        heartbeat_ledger[service_name] = time.time()
+        
+        print(f"🎯 [API] 成功接收到来自 [{service_name}] 的复活心跳包！")
+        return {"status": "success", "message": f"Heartbeat received!"}, 200
+    except Exception as e:
+        print(f"❌ [API] 心跳接口崩溃: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
+
 # --- Flask Web 界面 ---
 @app.route("/")
 def index():

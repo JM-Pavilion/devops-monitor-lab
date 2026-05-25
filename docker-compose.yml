@@ -2,9 +2,13 @@ version: '3.8'
 
 services:
   jm-monitor:
+    image: ${ALIYUN_REGISTRY:-jm-compose-lab-jm-monitor}:latest
     container_name: jm-monitor
-    # 使用你在 GitHub Secrets 里配置的最新专属 ACR 镜像地址
-    image: crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+    # 【本地试验模式】：直接读取当前目录的 Dockerfile 进行编译打包
+    build: .
+    # 【阿里云部署模式】：线上 CI/CD 时再切换回 ACR 镜像（本地先注释掉）
+    # image: crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+
     ports:
       - "10000:10000"
     environment:
@@ -15,8 +19,11 @@ services:
 
     # ✨【核心战役点】挂载持久化数据卷
     volumes:
+      # 【本地点兵】：改成相对路径'./logs'，直接映射到当前 Mac 目录下的 logs 文件夹（需要先创建好）,方便本地调试和查看日志
+      - ./logs:/app/logs
       # 语法格式：宿主机(阿里云物理机)路径 : 容器内部路径
-      - /app/jm-monitor/logs:/app/logs
+      # - /app/jm-monitor/logs:/app/logs
+
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:10000/" ]

@@ -1158,3 +1158,56 @@ docker compose up -d --force-recreate
   * **Issue C: CI Pipeline Deadlock on Infinite Loop / 困难 C：流水线卡死无限循环**：Because the GitHub runner simulated deployment testing directly against `monitoring_worker()`, the embedded `while True` loop hung the runner runner indefinitely.(因为在 `bot.py` 的 CI 测试模式中直接调用了包含 `while True` 的死循环监控函数，导致 GitHub Actions 流水线永远转圈无法结束。)
     * *Solution / 解决*：Integrated an execution interceptor at the base of the loop cycle: `if os.getenv("CI") == "true": break`. This enabled the pipeline test case to parse a singular check and exit gracefully with an all-green pass.(在循环体末尾加上拦截器：`if os.getenv("CI") == "true": break`，让测试用例跑完一圈后优雅撤退，流水线顺利恢复全绿。)
 
+
+# Microservices Monitoring & Containerization / 微服务监控与容器化编排(2026-05-24)
+
+A lightweight, industrial-grade microservices monitoring radar system built with Python, Flask, and Docker Compose. It features active HTTP probing, passive heartbeat state machines, and real-time interactive alerting via Feishu/Lark webhooks.(这是一个基于 Python、Flask 和 Docker Compose 构建的轻量级、工业级微服务监控雷达系统。支持主动 HTTP 探针、被动心跳状态机，并通过飞书互动卡片实现实时双向告警。)
+
+---
+
+## 🚀 Features / 功能特性
+
+- **Dual-Mode Monitoring / 双模监控**: 
+  - *Active Probing (HTTP)*: Periodically checks external links and internal microservice business codes.(定期轮询外部网站及内部微服务的核心业务码（Business Code）。)
+  - *Passive Heartbeat (Gatekeeper)*: Receives active check-ins from standalone services via RESTful APIs with a 30s timeout mechanism.(提供标准 RESTful API 接收独立服务的主动上报，具备 30 秒失联判定机制。)
+- **Strict State Machine / 刚性状态机**: Prevents alert fatigue. Alerts are only triggered on state transitions (Normal ↔ Error/Down).(严格控制告警频率，只有在状态发生确切变更时（正常 ↔ 异常）才会触发飞书通知，拒绝告警轰炸。)
+- **Network Isolation / 内网绝对隔离**: Microservices interact seamlessly within Docker’s virtual bridge network without exposing sensitive ports to the public internet.(微服务运行于 Docker 虚拟内部网桥中，无需暴露任何宿主机端口即可通过内部虚拟 DNS 完美互通，确保架构安全。)
+
+---
+
+## 📐 Architecture / 架构设计
+
+```text
+               +-------------------------------------------------------+
+               |                  Docker Virtual Network               |
+               |                                                       |
+ [Public IN]   |   +--------------------+       +------------------+   |
+ ------------> |   | jm-monitor (10000) | ----> |  order-service   |   |
+  (Flask API)  |   |   (Radar Bot)      | (DNS) |   (Nginx:80)     |   |
+               |   +--------------------+       +------------------+   |
+               +-------------|-----------------------------------------+
+                             |
+                             v [Outgoing Webhook]
+                     Feishu / Lark Alert
+```
+
+## 🛠️ Quick Start / 快速启动
+### Prerequisites / 前置条件
+* ​Docker & Docker Desktop (Ensured daemon is running / 确保引擎已启动)
+​Python 3.11+ (For local debugging / 用于本地调试)
+​Deploying the Cluster / 集群一键一键启动
+- Run the following command in the project root directory to pull dependencies, build the image, and orchestrate the containers(在项目根目录下执行以下命令，全自动完成依赖拉取、镜像编译和容器编排):
+
+```base
+docker compose build --no-cache && docker compose up
+```
+
+### Testing Passive Heartbeat / 测试被动心跳复活
+​To revive the monitoring radar's self-lock, send an encrypted payload to the cluster(执行以下命令向容器集群发射心跳导弹，见证失联雷达瞬间满血复活):
+
+```base
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"service_name": "🔥雷达自身守护锁"}' \
+  [http://127.0.0.1:10000/api/heartbeat](http://127.0.0.1:10000/api/heartbeat)
+```
+
