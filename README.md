@@ -1211,3 +1211,46 @@ curl -X POST -H "Content-Type: application/json" \
   [http://127.0.0.1:10000/api/heartbeat](http://127.0.0.1:10000/api/heartbeat)
 ```
 
+---
+
+# 🚨 Critical Troubleshooting: Mirror Network Timeout / 核心排障：镜像拉取网络故障 (2026-05-31)
+## ​Problem / 问题现象:
+​When launching the cluster initialization via kind create cluster --name jm-k8s-lab, the Alibaba Cloud container mirror registry threw a 500 Internal Server Error due to a severe network throttle while attempting to pull the massive multi-gigabit kindest/node:v1.29.2 base image.(​在执行集群初始化时，由于 kindest/node:v1.29.2 基础镜像是打包了完整系统组件的超级巨无霸，自有的阿里云镜像加速节点因大文件传输中断抛出 500 Internal Server Error，导致初始化崩溃。)
+## Solution / 破局方案:
+​We utilized a "Leopard for a Cat" (狸猫换太子) caching tactic. By shifting the upstream route to a reliable fallback mirror registry (m.daocloud.io), we fetched the binary to the local system storage cache, retagged it to standard specifications, and forced Kind to boot via local cache bypass.(​我们使用了“本地缓存替换”的技术迂回战术：通过高质量的备份加速通道 m.daocloud.io 强行将大镜像拖到宿主机本地，重命名为官方默认寻找的标签名，最后通过 --image 参数阻断外网请求，完美空降镜像通关。)
+
+```base
+# Pull via secondary channel / 借道备份通道拉取
+docker pull m.daocloud.io/docker.io/kindest/node:v1.29.2
+
+# Retag to match official blueprint / 狸猫换太子改回官方原名
+docker tag m.daocloud.io/docker.io/kindest/node:v1.29.2 kindest/node:v1.29.2
+
+# Boot cluster leveraging local air-gapped image / 强制声明读取本地镜像启动
+kind create cluster --name jm-k8s-lab --image kindest/node:v1.29.2
+```
+
+## 📄 Declarative Manifests / 声明式配置文件汇总
+​The system migration relies on two foundational configurations located inside the k8s-manifests/ bundle directory(​集群重构的核心资产包含在 k8s-manifests/ 目录下的两个核心声明文件中):
+
+### ​A. configmap.yaml (Configuration Decoupling / 配置解耦)
+​Keeps the core business image pristine and logic-only by externalizing the target Feishu alert notification tokens.(将飞书机器人的鉴权令牌完全剥离到代码之外，确保镜像成为纯粹的业务逻辑。)
+
+### B. deployment.yaml (Replication & Injection / 副本控制与动态打针)
+​Manages the replica cycles and dynamically injects the externalized runtime parameters securely into the app's OS container environment via key references.(定义了容器的自我修复规则，并在系统启动的一瞬间将上面的 LARK_URL 动态注入为容器内的环境变量。)
+
+## 🔍 6. Runtime Verification / 运行时状态校验
+​To verify successful deployment, apply the manifests and query the live cluster state(​在云服务器终端执行部署声明，并进行健康状态追踪):
+
+```base
+# Apply blueprints / 点火应用声明
+kubectl apply -f k8s-manifests/
+
+# Monitor cluster rollout status / 追踪查看 Pod 运行状态
+kubectl get pods -w
+```
+
+## Expected Output / 期望的完美输出:
+* RESTARTS: 0 proves that our Python application successfully ingested the injected LARK_URL environment variables from the K8s ConfigMap upon initialization, without hitting configuration crashes or termination loops (CrashLoopBackOff).(0 这一黄金指标证明我们的 Python 应用程序在点火瞬间完美读取到了由 ConfigMap 外部注入的环境变量，没有遭遇任何配置缺失引起的闪退报错。)
+
+
