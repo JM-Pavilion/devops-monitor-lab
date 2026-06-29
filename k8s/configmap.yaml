@@ -1,0 +1,12 @@
+# ============================================================
+# jm-monitor — ConfigMap (non-sensitive config)
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jm-monitor-config
+  namespace: jm-monitor
+data:
+  PORT: "10000"
+  MONITOR_INTERVAL: "15"
+  LOG_PATH: "/app/logs"

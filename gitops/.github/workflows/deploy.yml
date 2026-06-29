@@ -1,0 +1,59 @@
+name: Docker Build & Push to ACR
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to ACR
+        uses: aliyun/acr-login@v1
+        with:
+          login-server: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE=${{ secrets.ALIYUN_REGISTRY }}/jm-lab/jm-monitor
+          docker build -t $IMAGE:${{ github.sha }} ./backend
+          docker tag $IMAGE:${{ github.sha }} $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy Compose to ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          source: "monitor/docker-compose.yml"
+          target: "/app/jm-monitor"
+          strip_components: 1
+
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          script: |
+            cd /app/jm-monitor
+            echo "${{ secrets.ACR_PASSWORD }}" | docker login \
+              --username=${{ secrets.ALIYUN_USERNAME }} \
+              --password-stdin ${{ secrets.ALIYUN_REGISTRY }}
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
+            nginx -t && systemctl reload nginx || true

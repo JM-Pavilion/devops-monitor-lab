@@ -1,0 +1,23 @@
+# ============================================================
+# Development override — hot-reload + LocalStack
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ============================================================
+services:
+  jm-monitor:
+    volumes:
+      # Hot-reload: bind-mount source so changes apply without rebuild
+      - ../backend/monitor/app.py:/app/monitor/app.py
+      - ./logs:/app/logs
+
+  localstack:
+    image: localstack/localstack:3.4.0
+    container_name: jm-localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=ec2,vpc,s3,iam
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

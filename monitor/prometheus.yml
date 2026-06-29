@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 5s     # 🚀 研发阶段调成 5 秒抓一次，看数据不用等！
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'jm-radar-monitor'
+    static_configs:
+      # 💡 核心知识点：在同一个 Docker 网络下，直接用容器名 jm-monitor 就能通信
+      - targets: ['jm-monitor:10000']

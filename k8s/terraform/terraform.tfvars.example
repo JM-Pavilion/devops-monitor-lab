@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars to version control.
+
+region       = "cn-hangzhou"
+project_name = "jm-monitor"
+ecs_password = "your-strong-password-here"

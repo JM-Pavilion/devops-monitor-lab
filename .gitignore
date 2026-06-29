@@ -1,0 +1,31 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+venv/
+
+# === Logs ===
+*.log
+logs/
+
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+*.tfvars
+
+# === Secrets ===
+.env
+.env.*
+
+# === macOS ===
+.DS_Store
+Icon*
+Thumbs.db
+
+# === Editor ===
+.vscode/
+.idea/

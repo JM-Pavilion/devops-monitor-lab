@@ -1,0 +1,17 @@
+# ============================================================
+# jm-monitor — Kubernetes Service
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: jm-monitor-service
+  namespace: jm-monitor
+spec:
+  selector:
+    app: jm-monitor
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 10000
+  type: ClusterIP

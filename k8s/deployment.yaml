@@ -1,0 +1,50 @@
+# ============================================================
+# jm-monitor — Kubernetes Deployment
+# Phase 6: K8s Cloud-Native Refactor (planned)
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jm-monitor
+  namespace: jm-monitor
+  labels:
+    app: jm-monitor
+    version: "1.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jm-monitor
+  template:
+    metadata:
+      labels:
+        app: jm-monitor
+    spec:
+      containers:
+        - name: jm-monitor
+          image: crpi-framb20i8zwsu1xc.cn-hangzhou.personal.cr.aliyuncs.com/jm-lab/jm-monitor:latest
+          ports:
+            - containerPort: 10000
+          envFrom:
+            - configMapRef:
+                name: jm-monitor-config
+            - secretRef:
+                name: jm-monitor-secret
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 10000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 10000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: log-storage
+              mountPath: /app/logs
+      volumes:
+        - name: log-storage
+          emptyDir: {}

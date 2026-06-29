@@ -1,0 +1,58 @@
+# ============================================================
+# Production Compose — jm-monitor
+# Usage: docker compose up -d
+# ============================================================
+version: '3.11'
+
+services:
+  jm-monitor:
+    image: ${ALIYUN_REGISTRY:-jm-monitor}:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: jm-monitor
+    ports:
+      - "10000:10000"
+    environment:
+      - PORT=10000
+      - MONITOR_INTERVAL=15
+      - LOG_PATH=/app/logs
+      - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL}
+    volumes:
+      # Production: named volume for log persistence
+      - jm_monitor_logs:/app/logs
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+      # ✨ 强力新兵：加入 Prometheus 官方镜像
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: jm-prometheus
+    ports:
+      - "9090:9090" # 映射 9090 端口到宿主机
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # 把刚才写的账本挂载进去
+    restart: always
+
+    # ✨ 强力新兵：加入 Grafana 官方镜像
+  grafana:
+    image: grafana/grafana-oss:10.0.0
+    container_name: jm-grafana
+    ports:
+      - "3000:3000" # 🚀 映射 3000 端口到宿主机
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # 默认管理员密码设为 admin
+    restart: always
+
+  # Internal microservice — NOT exposed on host ports (intranet only)
+  order-service:
+    image: nginx:alpine
+    container_name: order-service
+    restart: always
+
+volumes:
+  jm_monitor_logs:

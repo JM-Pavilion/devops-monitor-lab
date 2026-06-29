@@ -1,0 +1,109 @@
+name: Master CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  # ── Stage 1: Unit Tests ──────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest
+      - name: Run unit tests
+        env:
+          LOG_PATH: "/tmp/jm-logs"
+          CI: "true"
+        run: pytest tests/ -v
+
+  # ── Stage 2: Build & Push Image to ACR ──────────────────────
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to ACR
+        uses: aliyun/acr-login@v1
+        with:
+          login-server: ${{ secrets.ALIREPO_REGISTRY }}
+          username: ${{ secrets.ALIREPO_USERNAME }}
+          password: ${{ secrets.ALIREPO_PASSWORD }}
+
+      - name: Build and Push
+        run: |
+          IMAGE=${{ secrets.ALIREPO_REGISTRY }}/jm-lab/jm-monitor
+          docker build -t $IMAGE:${{ github.sha }} ./backend
+          docker tag $IMAGE:${{ github.sha }} $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+
+  # ── Stage 3: Terraform Plan (IaC preview) ───────────────────
+  terraform-plan:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: k8s   # future: move tf files here
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -reconfigure -input=false
+        env:
+          ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          ALICLOUD_REGION: "cn-hangzhou"
+
+      - name: Terraform Plan (read-only, no auto-apply)
+        run: terraform plan -lock=false -input=false
+        env:
+          ALICLOUD_ACCESS_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALICLOUD_SECRET_KEY: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          ALICLOUD_REGION: "cn-hangzhou"
+          TF_VAR_ecs_password: ${{ secrets.ECS_PASSWORD }}
+
+  # ── Stage 4: Deploy to ECS ───────────────────────────────────
+  deploy:
+    needs: [build-and-push, terraform-plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy Compose file to ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          source: "monitor/docker-compose.yml"
+          target: "/app/jm-monitor"
+          strip_components: 1
+
+      - name: SSH — Pull & Restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.ECS_PASSWORD }}
+          script: |
+            cd /app/jm-monitor
+            docker login \
+              --username=${{ secrets.ALIREPO_USERNAME }} \
+              --password=${{ secrets.ALIREPO_PASSWORD }} \
+              ${{ secrets.ALIREPO_REGISTRY }}
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
