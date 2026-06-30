@@ -31,7 +31,6 @@ graph LR
 ## 📸 Visual Showcase (项目核心战果硬核展示)
 ### ​1. Grafana 生产级时序可视化大盘
 ![Grafana](docs/screenshots/grafana-dashboard.png)
-
 Real-time microservice health, QPS pressure peaks, and dynamic metrics trend line graphs.
 
 ### ​2. Prometheus 靶点健康状态监听 (UP)
@@ -40,9 +39,7 @@ Cloud-native automated target scraping via the standardized /metrics protocol.
 
 ### 3. GitHub Actions 自动化持续交付流水线 (CD Pipeline)
 ![GitHub Actions](docs/screenshots/github-actions.png)
-
 A rock-solid 3-stage delivery pipeline (Build & Push → IaC Plan → Production Deploy) running flawlessly after continuous integration testing passes.*
-
 
 ### ​4. JM-Radar 微服务智能探针首页
 ![JM-Radar](docs/screenshots/jm-radar.png)
@@ -229,17 +226,6 @@ All credentials (ACR password, ECS password, Feishu webhook) are injected at run
 | `master-pipeline.yml` Stage 2 | After tests pass | `docker build` → push `:sha` + `:latest` to ACR |
 | `master-pipeline.yml` Stage 3 | After image push | `terraform plan` (read-only IaC preview) |
 | `master-pipeline.yml` Stage 4 | After plan passes | SCP compose file → SSH `docker compose up -d` |
-
----
-
-## Roadmap
-
-- [x] Phase 1–3: Multi-container Docker network + Feishu state-machine alerting
-- [x] Phase 4: Alibaba Cloud ACR private registry + ECS single-node deploy
-- [x] Phase 5: GitHub Actions 4-stage CI/CD pipeline (full automation)
-- [ ] Phase 6: Kubernetes cloud-native refactor (manifests in `k8s/`)
-- [ ] Phase 7: Prometheus + Grafana observability layer
-- [ ] Phase 8: ArgoCD GitOps continuous delivery
 
 ---
 
