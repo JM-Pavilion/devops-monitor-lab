@@ -229,16 +229,7 @@ All credentials (ACR password, ECS password, Feishu webhook) are injected at run
 
 ---
 
-## Roadmap
 
-- [x] Phase 1–3: Multi-container Docker network + Feishu state-machine alerting
-- [x] Phase 4: Alibaba Cloud ACR private registry + ECS single-node deploy
-- [x] Phase 5: GitHub Actions 4-stage CI/CD pipeline (full automation)
-- [ ] Phase 6: Kubernetes cloud-native refactor (manifests in `k8s/`)
-- [ ] Phase 7: Prometheus + Grafana observability layer
-- [ ] Phase 8: ArgoCD GitOps continuous delivery
-
----
 
 ## License
 
